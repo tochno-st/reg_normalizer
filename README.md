@@ -1,3 +1,6 @@
+[![License: CC BY-NC-SA 4.0](https://img.shields.io/badge/License-CC_BY—NC—SA_4.0-lightgrey.svg)](https://creativecommons.org/licenses/by-nc-sa/4.0/)
+
+
 # Region Normalizer
 
 **Region Normalizer** — инструмент для нормализации и стандартизации наименований российских регионов. Он помогает распознавать регион даже в случаях, когда в названии встречаются опечатки, латинские буквы или другие особенности написания. Инструмент сопоставляет различные формы написания с эталонным справочником и позволяет извлекать дополнительные атрибуты, такие как коды ОКАТО, ISO, английские названия и многое другое.
@@ -108,14 +111,9 @@ match, score = matcher.find_best_match(
 )
 ```
 
-## Структура эталонного справочника
-
-Файл `data/interim/regions_etalon_v2.0.yaml` содержит ключи:
-- `name_rus` — официальное название региона
-- `name_eng` — английское название
-- `okato` — код ОКАТО
-- `iso_code` — код ISO
-
 ## Лицензия
 
-MIT
+<a rel="license" href="https://creativecommons.org/licenses/by-nc-sa/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by-nc-sa/4.0/88x31.png" /></a><br />
+Creative Commons License Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0).
+
+Copyright © the respective contributors, as shown by the `AUTHORS` file.
