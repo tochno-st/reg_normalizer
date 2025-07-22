@@ -1,0 +1,7 @@
+pyyaml>=6.0
+fuzzywuzzy>=0.18.0
+python-levenshtein>=0.20.0
+pandas>=1.5.0
+nltk>=3.8.0
+ipykernel
+pandas
