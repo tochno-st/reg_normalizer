@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "reg-normalizer"
-version = "1.0.1"
+version = "1.0.2"
 description = "Tool for normalizing and standardizing Russian region names"
 readme = "README.md"
 authors = [

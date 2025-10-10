@@ -95,14 +95,17 @@ result_df = matcher.match_dataframe(
 ### 4. Добавление дополнительных полей
 
 ```python
-# Добавить английские названия
+# Способ 1: Добавить несколько полей одновременно (эффективно!)
+result_df = matcher.attach_fields(result_df, 'region_name',
+                                  ['name_eng', 'okato', 'iso_code'])
+
+# Способ 2: Добавить одно поле
 result_df = matcher.attach_field(result_df, 'region_name', 'name_eng')
-# Добавить коды ОКАТО
-result_df = matcher.attach_field(result_df, 'region_name', 'okato')
-# Добавить коды ISO
-result_df = matcher.attach_field(result_df, 'region_name', 'iso_code')
+
 print(result_df.head())
 ```
+
+> **Совет**: Используйте `attach_fields()` для добавления нескольких полей — это намного быстрее, чем вызывать `attach_field()` несколько раз, особенно на больших данных.
 
 ## Кастомизация
 

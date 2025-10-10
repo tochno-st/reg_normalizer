@@ -180,21 +180,99 @@ class RegionMatcher:
         return df
     
     def attach_field(self, df: pd.DataFrame, column_name: str, etalon_field: str, **kwargs) -> pd.DataFrame:
-        """Add additional field to the dataframe based on the best match."""
+        """Add additional field to the dataframe based on the best match.
 
-        def lookup_etalon_value(region_name: str):
-            match_result = self.find_best_match(region_name, **kwargs)
-            
+        Optimized to process only unique values in the column.
+
+        Args:
+            df: DataFrame to modify
+            column_name: Column containing region names
+            etalon_field: Field name from etalon data to attach (e.g., 'name_eng', 'okato', 'iso_code')
+            **kwargs: Additional arguments passed to find_best_match
+
+        Returns:
+            DataFrame with new column added
+        """
+        # Get unique values to avoid redundant matching
+        unique_values = df[column_name].unique()
+        field_mapping = {}
+
+        # Build mapping for unique values only
+        for value in unique_values:
+            match_result = self.find_best_match(value, **kwargs)
+
             if not match_result or match_result[1] is None:
-                return None
-            
-            best_match, score = match_result
-            matched_row = pd.DataFrame([row for row in etalon_data['dict'].values() if row['name_rus'] == best_match])
-            if not matched_row.empty:
-                return matched_row.iloc[0][etalon_field]
-            return None
+                field_mapping[value] = None
+                continue
 
-        df[etalon_field] = df[column_name].apply(lookup_etalon_value)
+            best_match, score = match_result
+            # Find the matching etalon record
+            for record in etalon_data['dict'].values():
+                if record['name_rus'] == best_match:
+                    field_mapping[value] = record.get(etalon_field)
+                    break
+            else:
+                field_mapping[value] = None
+
+        # Apply the mapping to create new column
+        df[etalon_field] = df[column_name].map(field_mapping)
+        return df
+
+    def attach_fields(self, df: pd.DataFrame, column_name: str, etalon_fields: list, **kwargs) -> pd.DataFrame:
+        """Add multiple fields from etalon data in a single efficient operation.
+
+        This is much more efficient than calling attach_field() multiple times,
+        as it performs fuzzy matching only once per unique value.
+
+        Args:
+            df: DataFrame to modify
+            column_name: Column containing region names
+            etalon_fields: List of field names from etalon data to attach
+                          (e.g., ['name_eng', 'okato', 'iso_code'])
+            **kwargs: Additional arguments passed to find_best_match
+
+        Returns:
+            DataFrame with all requested fields added as new columns
+
+        Example:
+            >>> matcher = RegionMatcher()
+            >>> df = matcher.attach_fields(df, 'region_name',
+            ...                            ['name_eng', 'okato', 'iso_code'])
+        """
+        # Get unique values to avoid redundant matching
+        unique_values = df[column_name].unique()
+
+        # Create a mapping dictionary for each field
+        field_mappings = {field: {} for field in etalon_fields}
+
+        # Build mappings for unique values only (single pass)
+        for value in unique_values:
+            match_result = self.find_best_match(value, **kwargs)
+
+            if not match_result or match_result[1] is None:
+                # No match found - set all fields to None
+                for field in etalon_fields:
+                    field_mappings[field][value] = None
+                continue
+
+            best_match, score = match_result
+
+            # Find the matching etalon record
+            for record in etalon_data['dict'].values():
+                if record['name_rus'] == best_match:
+                    # Extract all requested fields from this record
+                    for field in etalon_fields:
+                        field_mappings[field][value] = record.get(field)
+                    break
+            else:
+                # Match found but not in etalon data (shouldn't happen)
+                for field in etalon_fields:
+                    field_mappings[field][value] = None
+
+        # Apply all mappings to create new columns
+        for field in etalon_fields:
+            df[field] = df[column_name].map(field_mappings[field])
+
         return df
 
 if __name__ == '__main__':
