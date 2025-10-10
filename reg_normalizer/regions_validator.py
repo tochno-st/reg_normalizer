@@ -13,7 +13,7 @@ def read_yaml(file_path):
 
 # Get the directory where this script is located
 script_dir = os.path.dirname(os.path.abspath(__file__))
-yaml_path = os.path.join(script_dir, '../data/interim/regions_etalon_v2.0.yaml')
+yaml_path = os.path.join(script_dir, 'data/interim/regions_etalon_v2.0.yaml')
 etalon_data = read_yaml(yaml_path)
 ETALON_REGIONS = [region['name_rus'] for region in etalon_data['dict'].values()]
 

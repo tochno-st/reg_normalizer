@@ -1,0 +1,58 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "reg-normalizer"
+version = "1.0.0"
+description = "Tool for normalizing and standardizing Russian region names"
+readme = "README.md"
+authors = [
+    {name = "Vitovt Kopytok", email = "vitovt.kopytok@gmail.com"}
+]
+license = {text = "CC BY-NC-SA 4.0"}
+requires-python = ">=3.8"
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: Free for non-commercial use",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Operating System :: OS Independent",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Text Processing :: Linguistic",
+    "Natural Language :: Russian",
+]
+keywords = ["regions", "normalization", "russian", "fuzzy-matching", "data-cleaning"]
+
+dependencies = [
+    "pyyaml>=6.0",
+    "fuzzywuzzy>=0.18.0",
+    "python-levenshtein>=0.20.0",
+    "pandas>=1.5.0",
+    "nltk>=3.8.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/tochno-st/reg_normalizer"
+Documentation = "https://github.com/tochno-st/reg_normalizer#readme"
+Repository = "https://github.com/tochno-st/reg_normalizer"
+"Bug Tracker" = "https://github.com/tochno-st/reg_normalizer/issues"
+
+[project.optional-dependencies]
+dev = [
+    "ipykernel",
+    "pytest>=7.0",
+    "pytest-cov",
+]
+
+[tool.setuptools]
+packages = ["reg_normalizer"]
+
+[tool.setuptools.package-data]
+reg_normalizer = ["data/interim/*.yaml"]

@@ -1,4 +1,6 @@
 [![License: CC BY-NC-SA 4.0](https://img.shields.io/badge/License-CC_BY—NC—SA_4.0-lightgrey.svg)](https://creativecommons.org/licenses/by-nc-sa/4.0/)
+[![PyPI version](https://badge.fury.io/py/reg-normalizer.svg)](https://badge.fury.io/py/reg-normalizer)
+[![Python Versions](https://img.shields.io/pypi/pyversions/reg-normalizer.svg)](https://pypi.org/project/reg-normalizer/)
 
 
 # Region Normalizer
@@ -14,6 +16,16 @@
 - Добавление дополнительных полей из эталонного справочника (ОКАТО, ISO, английское название и др.)
 
 ## Установка
+
+Установите пакет с помощью pip:
+
+```bash
+pip install reg-normalizer
+```
+
+### Установка для разработки
+
+Если вы хотите внести изменения в код:
 
 1. Клонируйте репозиторий:
 
@@ -33,9 +45,8 @@ pip install -r requirements.txt
 ### 1. Импорт и инициализация
 
 ```python
-import sys
-sys.path.append('src')
-from regions_validator import RegionMatcher
+from reg_normalizer import RegionMatcher
+
 matcher = RegionMatcher()
 ```
 
