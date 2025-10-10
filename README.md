@@ -133,6 +133,11 @@ match, score = matcher.find_best_match(
 - `okato` — код ОКАТО
 - `iso_code` — код ISO
 
+## TODO
+
+- [ ] Добавить обработку сокращений "Республика" (респ., р., Респ.)
+- [ ] Расширить справочник замен аббревиатур и сокращений
+
 ## Лицензия
 
 <a rel="license" href="https://creativecommons.org/licenses/by-nc-sa/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by-nc-sa/4.0/88x31.png" /></a><br />
