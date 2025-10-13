@@ -1,0 +1,55 @@
+name: Create Release on Tag Push
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'  # Triggers on version tags like v1.0.4
+
+permissions:
+  contents: write
+
+jobs:
+  create-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch all history for changelog generation
+
+      - name: Get tag name
+        id: get_tag
+        run: echo "TAG_NAME=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+
+      - name: Get previous tag
+        id: get_prev_tag
+        run: |
+          PREV_TAG=$(git tag --sort=-version:refname | grep -A1 "${{ steps.get_tag.outputs.TAG_NAME }}" | tail -1)
+          echo "PREV_TAG=$PREV_TAG" >> $GITHUB_OUTPUT
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          if [ -n "${{ steps.get_prev_tag.outputs.PREV_TAG }}" ]; then
+            CHANGELOG=$(git log ${{ steps.get_prev_tag.outputs.PREV_TAG }}..${{ steps.get_tag.outputs.TAG_NAME }} --pretty=format:"- %s" --no-merges)
+          else
+            CHANGELOG=$(git log ${{ steps.get_tag.outputs.TAG_NAME }} --pretty=format:"- %s" --no-merges)
+          fi
+          echo "CHANGELOG<<EOF" >> $GITHUB_OUTPUT
+          echo "$CHANGELOG" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Create Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.get_tag.outputs.TAG_NAME }}
+          release_name: Release ${{ steps.get_tag.outputs.TAG_NAME }}
+          body: |
+            ## Changes in this release
+
+            ${{ steps.changelog.outputs.CHANGELOG }}
+          draft: false
+          prerelease: false
