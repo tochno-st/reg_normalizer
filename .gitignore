@@ -93,3 +93,6 @@ target/
 ./credentials.py
 src/data/credentials.py
 
+# Local publishing guide
+PUBLISHING.txt
+
