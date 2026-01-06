@@ -24,6 +24,7 @@ dict:
     level: страна
     parent_id: None
     parent_name: None
+    status: active
   central_fd:
     id: 2
     name_rus: Центральный федеральный округ
@@ -45,6 +46,7 @@ dict:
     level: федеральный округ
     parent_id: 1
     parent_name: Российская Федерация
+    status: active
   belgorod:
     id: 140
     name_rus: Белгородская область
@@ -66,6 +68,7 @@ dict:
     level: регион
     parent_id: 2
     parent_name: Центральный федеральный округ
+    status: active
   bryansk:
     id: 150
     name_rus: Брянская область
@@ -87,6 +90,7 @@ dict:
     level: регион
     parent_id: 2
     parent_name: Центральный федеральный округ
+    status: active
   vladimir:
     id: 170
     name_rus: Владимирская область
@@ -108,6 +112,7 @@ dict:
     level: регион
     parent_id: 2
     parent_name: Центральный федеральный округ
+    status: active
   voronezh:
     id: 200
     name_rus: Воронежская область
@@ -129,6 +134,7 @@ dict:
     level: регион
     parent_id: 2
     parent_name: Центральный федеральный округ
+    status: active
   ivanovo:
     id: 240
     name_rus: Ивановская область
@@ -150,6 +156,7 @@ dict:
     level: регион
     parent_id: 2
     parent_name: Центральный федеральный округ
+    status: active
   kaluga:
     id: 290
     name_rus: Калужская область
@@ -171,6 +178,7 @@ dict:
     level: регион
     parent_id: 2
     parent_name: Центральный федеральный округ
+    status: active
   kostroma:
     id: 340
     name_rus: Костромская область
@@ -192,6 +200,7 @@ dict:
     level: регион
     parent_id: 2
     parent_name: Центральный федеральный округ
+    status: active
   kursk:
     id: 380
     name_rus: Курская область
@@ -213,6 +222,7 @@ dict:
     level: регион
     parent_id: 2
     parent_name: Центральный федеральный округ
+    status: active
   lipetsk:
     id: 420
     name_rus: Липецкая область
@@ -234,6 +244,7 @@ dict:
     level: регион
     parent_id: 2
     parent_name: Центральный федеральный округ
+    status: active
   moskovskaya:
     id: 460
     name_rus: Московская область
@@ -255,6 +266,7 @@ dict:
     level: регион
     parent_id: 2
     parent_name: Центральный федеральный округ
+    status: active
   oryol:
     id: 540
     name_rus: Орловская область
@@ -276,6 +288,7 @@ dict:
     level: регион
     parent_id: 2
     parent_name: Центральный федеральный округ
+    status: active
   ryazan:
     id: 610
     name_rus: Рязанская область
@@ -297,6 +310,7 @@ dict:
     level: регион
     parent_id: 2
     parent_name: Центральный федеральный округ
+    status: active
   smolensk:
     id: 660
     name_rus: Смоленская область
@@ -318,6 +332,7 @@ dict:
     level: регион
     parent_id: 2
     parent_name: Центральный федеральный округ
+    status: active
   tambov:
     id: 680
     name_rus: Тамбовская область
@@ -339,6 +354,7 @@ dict:
     level: регион
     parent_id: 2
     parent_name: Центральный федеральный округ
+    status: active
   tver:
     id: 280
     name_rus: Тверская область
@@ -360,6 +376,7 @@ dict:
     level: регион
     parent_id: 2
     parent_name: Центральный федеральный округ
+    status: active
   tula:
     id: 700
     name_rus: Тульская область
@@ -381,6 +398,7 @@ dict:
     level: регион
     parent_id: 2
     parent_name: Центральный федеральный округ
+    status: active
   yaroslavl:
     id: 780
     name_rus: Ярославская область
@@ -402,6 +420,7 @@ dict:
     level: регион
     parent_id: 2
     parent_name: Центральный федеральный округ
+    status: active
   moskva:
     id: 450
     name_rus: Москва
@@ -425,6 +444,7 @@ dict:
     level: регион
     parent_id: 2
     parent_name: Центральный федеральный округ
+    status: active
   northwestern_fd:
     id: 3
     name_rus: Северо-Западный федеральный округ
@@ -447,6 +467,7 @@ dict:
     level: федеральный округ
     parent_id: 1
     parent_name: Российская Федерация
+    status: active
   karelia:
     id: 860
     name_rus: Республика Карелия
@@ -468,6 +489,7 @@ dict:
     level: регион
     parent_id: 3
     parent_name: Северо-Западный федеральный округ
+    status: active
   komi:
     id: 870
     name_rus: Республика Коми
@@ -489,6 +511,7 @@ dict:
     level: регион
     parent_id: 3
     parent_name: Северо-Западный федеральный округ
+    status: active
   arkhangelsk:
     id: 110
     name_rus: Архангельская область
@@ -510,6 +533,7 @@ dict:
     level: регион
     parent_id: 3
     parent_name: Северо-Западный федеральный округ
+    status: active
   nenets:
     id: 111
     name_rus: Ненецкий автономный округ
@@ -531,6 +555,7 @@ dict:
     level: регион
     parent_id: 110
     parent_name: Северо-Западный федеральный округ
+    status: active
   arkhangelsk-withoit-nenets:
     id: 112
     name_rus: Архангельская область без автономного округа
@@ -552,6 +577,7 @@ dict:
     level: регион
     parent_id: 110
     parent_name: Архангельская область
+    status: active
   vologda:
     id: 190
     name_rus: Вологодская область
@@ -573,6 +599,7 @@ dict:
     level: регион
     parent_id: 3
     parent_name: Северо-Западный федеральный округ
+    status: active
   kaliningrad:
     id: 270
     name_rus: Калининградская область
@@ -595,6 +622,7 @@ dict:
     level: регион
     parent_id: 3
     parent_name: Северо-Западный федеральный округ
+    status: active
   leningrad:
     id: 410
     name_rus: Ленинградская область
@@ -616,6 +644,7 @@ dict:
     level: регион
     parent_id: 3
     parent_name: Северо-Западный федеральный округ
+    status: active
   murmansk:
     id: 470
     name_rus: Мурманская область
@@ -637,6 +666,7 @@ dict:
     level: регион
     parent_id: 3
     parent_name: Северо-Западный федеральный округ
+    status: active
   novgorod:
     id: 490
     name_rus: Новгородская область
@@ -658,6 +688,7 @@ dict:
     level: регион
     parent_id: 3
     parent_name: Северо-Западный федеральный округ
+    status: active
   pskov:
     id: 580
     name_rus: Псковская область
@@ -679,6 +710,7 @@ dict:
     level: регион
     parent_id: 3
     parent_name: Северо-Западный федеральный округ
+    status: active
   saint-petersburg:
     id: 400
     name_rus: Санкт-Петербург
@@ -702,6 +734,7 @@ dict:
     level: регион
     parent_id: 3
     parent_name: Северо-Западный федеральный округ
+    status: active
   southern_fd:
     id: 4
     name_rus: Южный федеральный округ
@@ -723,6 +756,29 @@ dict:
     level: федеральный округ
     parent_id: 1
     parent_name: Российская Федерация
+    status: active
+  crimean_fd:
+    id: 11
+    name_rus: Крымский федеральный округ
+    name_eng: Crimean Federal District
+    name_constitution: None
+    name_fns: None
+    name_fias: None
+    name_rst_data: Крымский федеральный округ
+    name_emiss: Крымский федеральный округ
+    name_datawrapper: None
+    name_datawrapper_square: None
+    name_datawrapper_short: None
+    name_tableau: None
+    alternative_names: []
+    okato: '00000000'
+    oktmo: '00000000'
+    fns_code: None
+    iso_code: None
+    level: федеральный округ
+    parent_id: 1
+    parent_name: Российская Федерация
+    status: historical
   adygea:
     id: 790
     name_rus: Республика Адыгея
@@ -744,6 +800,7 @@ dict:
     level: регион
     parent_id: 4
     parent_name: Южный федеральный округ
+    status: active
   kalmykia:
     id: 850
     name_rus: Республика Калмыкия
@@ -765,6 +822,7 @@ dict:
     level: регион
     parent_id: 4
     parent_name: Южный федеральный округ
+    status: active
   сrimea:
     id: 350
     name_rus: Республика Крым
@@ -786,6 +844,7 @@ dict:
     level: регион
     parent_id: 4
     parent_name: Южный федеральный округ
+    status: active
   krasnodar:
     id: 30
     name_rus: Краснодарский край
@@ -807,6 +866,7 @@ dict:
     level: регион
     parent_id: 4
     parent_name: Южный федеральный округ
+    status: active
   astrakhan:
     id: 120
     name_rus: Астраханская область
@@ -828,6 +888,7 @@ dict:
     level: регион
     parent_id: 4
     parent_name: Южный федеральный округ
+    status: active
   volgograd:
     id: 180
     name_rus: Волгоградская область
@@ -849,6 +910,7 @@ dict:
     level: регион
     parent_id: 4
     parent_name: Южный федеральный округ
+    status: active
   rostov:
     id: 600
     name_rus: Ростовская область
@@ -870,6 +932,7 @@ dict:
     level: регион
     parent_id: 4
     parent_name: Южный федеральный округ
+    status: active
   sevastopol:
     id: 670
     name_rus: Севастополь
@@ -891,6 +954,7 @@ dict:
     level: регион
     parent_id: 4
     parent_name: Южный федеральный округ
+    status: active
   north-caucasian_fd:
     id: 5
     name_rus: Северо-Кавказский федеральный округ
@@ -912,6 +976,7 @@ dict:
     level: федеральный округ
     parent_id: 1
     parent_name: Российская Федерация
+    status: active
   dagestan:
     id: 820
     name_rus: Республика Дагестан
@@ -933,6 +998,7 @@ dict:
     level: регион
     parent_id: 5
     parent_name: Северо-Кавказский федеральный округ
+    status: active
   ingushetia:
     id: 260
     name_rus: Республика Ингушетия
@@ -954,6 +1020,7 @@ dict:
     level: регион
     parent_id: 5
     parent_name: Северо-Кавказский федеральный округ
+    status: active
   kabardino-balkaria:
     id: 830
     name_rus: Кабардино-Балкарская Республика
@@ -975,6 +1042,7 @@ dict:
     level: регион
     parent_id: 5
     parent_name: Северо-Кавказский федеральный округ
+    status: active
   karachay-cherkessia:
     id: 910
     name_rus: Карачаево-Черкесская Республика
@@ -996,6 +1064,7 @@ dict:
     level: регион
     parent_id: 5
     parent_name: Северо-Кавказский федеральный округ
+    status: active
   north-ossetia:
     id: 900
     name_rus: Республика Северная Осетия — Алания
@@ -1020,6 +1089,7 @@ dict:
     level: регион
     parent_id: 5
     parent_name: Северо-Кавказский федеральный округ
+    status: active
   chechnya:
     id: 960
     name_rus: Чеченская Республика
@@ -1041,6 +1111,7 @@ dict:
     level: регион
     parent_id: 5
     parent_name: Северо-Кавказский федеральный округ
+    status: active
   stavropol:
     id: 70
     name_rus: Ставропольский край
@@ -1063,6 +1134,7 @@ dict:
     level: регион
     parent_id: 5
     parent_name: Северо-Кавказский федеральный округ
+    status: active
   privolzhsky_fd:
     id: 6
     name_rus: Приволжский федеральный округ
@@ -1084,6 +1156,7 @@ dict:
     level: федеральный округ
     parent_id: 1
     parent_name: Российская Федерация
+    status: active
   bashkortostan:
     id: 800
     name_rus: Республика Башкортостан
@@ -1105,6 +1178,7 @@ dict:
     level: регион
     parent_id: 6
     parent_name: Приволжский федеральный округ
+    status: active
   mari-el:
     id: 880
     name_rus: Республика Марий Эл
@@ -1126,6 +1200,7 @@ dict:
     level: регион
     parent_id: 6
     parent_name: Приволжский федеральный округ
+    status: active
   mordovia:
     id: 890
     name_rus: Республика Мордовия
@@ -1147,6 +1222,7 @@ dict:
     level: регион
     parent_id: 6
     parent_name: Приволжский федеральный округ
+    status: active
   tatarstan:
     id: 920
     name_rus: Республика Татарстан
@@ -1168,6 +1244,7 @@ dict:
     level: регион
     parent_id: 6
     parent_name: Приволжский федеральный округ
+    status: active
   udmurt:
     id: 940
     name_rus: Удмуртская Республика
@@ -1189,6 +1266,7 @@ dict:
     level: регион
     parent_id: 6
     parent_name: Приволжский федеральный округ
+    status: active
   chuvashia:
     id: 970
     name_rus: Чувашская Республика
@@ -1210,6 +1288,7 @@ dict:
     level: регион
     parent_id: 6
     parent_name: Приволжский федеральный округ
+    status: active
   perm:
     id: 570
     name_rus: Пермский край
@@ -1231,6 +1310,29 @@ dict:
     level: регион
     parent_id: 6
     parent_name: Приволжский федеральный округ
+    status: active
+  komi-permyak:
+    id: 571
+    name_rus: Коми-Пермяцкий автономный округ
+    name_eng: Komi-Permyak Autonomous Okrug
+    name_constitution: None
+    name_fns: None
+    name_fias: None
+    name_rst_data: Коми-Пермяцкий автономный округ
+    name_emiss: Коми-Пермяцкий автономный округ
+    name_datawrapper: None
+    name_datawrapper_square: None
+    name_datawrapper_short: КПМ
+    name_tableau: None
+    alternative_names: []
+    okato: '57100000'
+    oktmo: '57800000'
+    fns_code: None
+    iso_code: None
+    level: регион
+    parent_id: 570
+    parent_name: Пермский край
+    status: historical
   kirov:
     id: 330
     name_rus: Кировская область
@@ -1252,6 +1354,7 @@ dict:
     level: регион
     parent_id: 6
     parent_name: Приволжский федеральный округ
+    status: active
   nizhny-novgorod:
     id: 220
     name_rus: Нижегородская область
@@ -1273,6 +1376,7 @@ dict:
     level: регион
     parent_id: 6
     parent_name: Приволжский федеральный округ
+    status: active
   orenburg:
     id: 530
     name_rus: Оренбургская область
@@ -1294,6 +1398,7 @@ dict:
     level: регион
     parent_id: 6
     parent_name: Приволжский федеральный округ
+    status: active
   penza:
     id: 560
     name_rus: Пензенская область
@@ -1315,6 +1420,7 @@ dict:
     level: регион
     parent_id: 6
     parent_name: Приволжский федеральный округ
+    status: active
   samara:
     id: 360
     name_rus: Самарская область
@@ -1336,6 +1442,7 @@ dict:
     level: регион
     parent_id: 6
     parent_name: Приволжский федеральный округ
+    status: active
   saratov:
     id: 630
     name_rus: Саратовская область
@@ -1357,6 +1464,7 @@ dict:
     level: регион
     parent_id: 6
     parent_name: Приволжский федеральный округ
+    status: active
   ulyanovsk:
     id: 730
     name_rus: Ульяновская область
@@ -1378,6 +1486,7 @@ dict:
     level: регион
     parent_id: 6
     parent_name: Приволжский федеральный округ
+    status: active
   ural_fd:
     id: 7
     name_rus: Уральский федеральный округ
@@ -1399,6 +1508,7 @@ dict:
     level: федеральный округ
     parent_id: 1
     parent_name: Российская Федерация
+    status: active
   kurgan:
     id: 370
     name_rus: Курганская область
@@ -1420,6 +1530,7 @@ dict:
     level: регион
     parent_id: 7
     parent_name: Уральский федеральный округ
+    status: active
   sverdlovsk:
     id: 650
     name_rus: Свердловская область
@@ -1441,6 +1552,7 @@ dict:
     level: регион
     parent_id: 7
     parent_name: Уральский федеральный округ
+    status: active
   tyumen:
     id: 710
     name_rus: Тюменская область
@@ -1462,6 +1574,7 @@ dict:
     level: регион
     parent_id: 7
     parent_name: Уральский федеральный округ
+    status: active
   khanty-mansi:
     id: 718
     name_rus: Ханты-Мансийский автономный округ — Югра
@@ -1488,6 +1601,7 @@ dict:
     level: регион
     parent_id: 710
     parent_name: Уральский федеральный округ
+    status: active
   yamalo-nenets:
     id: 719
     name_rus: Ямало-Ненецкий автономный округ
@@ -1509,6 +1623,7 @@ dict:
     level: регион
     parent_id: 710
     parent_name: Уральский федеральный округ
+    status: active
   tyumen-without-okrug:
     id: 716
     name_rus: Тюменская область без автономных округов
@@ -1530,6 +1645,7 @@ dict:
     level: регион
     parent_id: 710
     parent_name: Тюменская область
+    status: active
   chelyabinsk:
     id: 750
     name_rus: Челябинская область
@@ -1551,6 +1667,7 @@ dict:
     level: регион
     parent_id: 7
     parent_name: Уральский федеральный округ
+    status: active
   siberian_fd:
     id: 8
     name_rus: Сибирский федеральный округ
@@ -1572,6 +1689,7 @@ dict:
     level: федеральный округ
     parent_id: 1
     parent_name: Российская Федерация
+    status: active
   gorno-altai:
     id: 840
     name_rus: Республика Алтай
@@ -1593,6 +1711,7 @@ dict:
     level: регион
     parent_id: 8
     parent_name: Сибирский федеральный округ
+    status: active
   tuva:
     id: 930
     name_rus: Республика Тыва
@@ -1614,6 +1733,7 @@ dict:
     level: регион
     parent_id: 8
     parent_name: Сибирский федеральный округ
+    status: active
   khakassia:
     id: 950
     name_rus: Республика Хакасия
@@ -1635,6 +1755,7 @@ dict:
     level: регион
     parent_id: 8
     parent_name: Сибирский федеральный округ
+    status: active
   altai:
     id: 10
     name_rus: Алтайский край
@@ -1656,6 +1777,7 @@ dict:
     level: регион
     parent_id: 8
     parent_name: Сибирский федеральный округ
+    status: active
   krasnoyarsk:
     id: 40
     name_rus: Красноярский край
@@ -1677,6 +1799,52 @@ dict:
     level: регион
     parent_id: 8
     parent_name: Сибирский федеральный округ
+    status: active
+  taymyr:
+    id: 41
+    name_rus: Таймырский (Долгано-Ненецкий) автономный округ
+    name_eng: Taymyr (Dolgano-Nenets) Autonomous Okrug
+    name_constitution: None
+    name_fns: None
+    name_fias: None
+    name_rst_data: Таймырский (Долгано-Ненецкий) автономный округ
+    name_emiss: Таймырский (Долгано-Ненецкий) автономный округ
+    name_datawrapper: None
+    name_datawrapper_square: None
+    name_datawrapper_short: ТАЙМ
+    name_tableau: None
+    alternative_names:
+    - Таймырский автономный округ
+    okato: '04100000'
+    oktmo: '04800000'
+    fns_code: None
+    iso_code: None
+    level: регион
+    parent_id: 40
+    parent_name: Красноярский край
+    status: historical
+  evenk:
+    id: 42
+    name_rus: Эвенкийский автономный округ
+    name_eng: Evenk Autonomous Okrug
+    name_constitution: None
+    name_fns: None
+    name_fias: None
+    name_rst_data: Эвенкийский автономный округ
+    name_emiss: Эвенкийский автономный округ
+    name_datawrapper: None
+    name_datawrapper_square: None
+    name_datawrapper_short: ЭВЕН
+    name_tableau: None
+    alternative_names: []
+    okato: '04200000'
+    oktmo: '04900000'
+    fns_code: None
+    iso_code: None
+    level: регион
+    parent_id: 40
+    parent_name: Красноярский край
+    status: historical
   irkutsk:
     id: 250
     name_rus: Иркутская область
@@ -1698,6 +1866,29 @@ dict:
     level: регион
     parent_id: 8
     parent_name: Сибирский федеральный округ
+    status: active
+  ust-orda-buryat:
+    id: 251
+    name_rus: Усть-Ордынский Бурятский автономный округ
+    name_eng: Ust-Orda Buryat Autonomous Okrug
+    name_constitution: None
+    name_fns: None
+    name_fias: None
+    name_rst_data: Усть-Ордынский Бурятский автономный округ
+    name_emiss: Усть-Ордынский Бурятский автономный округ
+    name_datawrapper: None
+    name_datawrapper_square: None
+    name_datawrapper_short: УОБО
+    name_tableau: None
+    alternative_names: []
+    okato: '25100000'
+    oktmo: '25800000'
+    fns_code: None
+    iso_code: None
+    level: регион
+    parent_id: 250
+    parent_name: Иркутская область
+    status: historical
   kemerovo:
     id: 320
     name_rus: Кемеровская область
@@ -1720,6 +1911,7 @@ dict:
     level: регион
     parent_id: 8
     parent_name: Сибирский федеральный округ
+    status: active
   novosibirsk:
     id: 500
     name_rus: Новосибирская область
@@ -1741,6 +1933,7 @@ dict:
     level: регион
     parent_id: 8
     parent_name: Сибирский федеральный округ
+    status: active
   omsk:
     id: 520
     name_rus: Омская область
@@ -1762,6 +1955,7 @@ dict:
     level: регион
     parent_id: 8
     parent_name: Сибирский федеральный округ
+    status: active
   tomsk:
     id: 690
     name_rus: Томская область
@@ -1783,6 +1977,7 @@ dict:
     level: регион
     parent_id: 8
     parent_name: Сибирский федеральный округ
+    status: active
   far_eastern_fd:
     id: 9
     name_rus: Дальневосточный федеральный округ
@@ -1804,6 +1999,7 @@ dict:
     level: федеральный округ
     parent_id: 1
     parent_name: Российская Федерация
+    status: active
   buryatia:
     id: 810
     name_rus: Республика Бурятия
@@ -1825,6 +2021,7 @@ dict:
     level: регион
     parent_id: 9
     parent_name: Дальневосточный федеральный округ
+    status: active
   sakha:
     id: 980
     name_rus: Республика Саха (Якутия)
@@ -1846,6 +2043,7 @@ dict:
     level: регион
     parent_id: 9
     parent_name: Дальневосточный федеральный округ
+    status: active
   zabaykalsky:
     id: 760
     name_rus: Забайкальский край
@@ -1867,6 +2065,29 @@ dict:
     level: регион
     parent_id: 9
     parent_name: Дальневосточный федеральный округ
+    status: active
+  agin-buryat:
+    id: 761
+    name_rus: Агинский Бурятский автономный округ
+    name_eng: Agin-Buryat Autonomous Okrug
+    name_constitution: None
+    name_fns: None
+    name_fias: None
+    name_rst_data: Агинский Бурятский автономный округ
+    name_emiss: Агинский Бурятский автономный округ
+    name_datawrapper: None
+    name_datawrapper_square: None
+    name_datawrapper_short: АБАО
+    name_tableau: None
+    alternative_names: []
+    okato: '76100000'
+    oktmo: '76800000'
+    fns_code: None
+    iso_code: None
+    level: регион
+    parent_id: 760
+    parent_name: Забайкальский край
+    status: historical
   kamchatka:
     id: 300
     name_rus: Камчатский край
@@ -1889,6 +2110,29 @@ dict:
     level: регион
     parent_id: 9
     parent_name: Дальневосточный федеральный округ
+    status: active
+  koryak:
+    id: 301
+    name_rus: Корякский автономный округ
+    name_eng: Koryak Autonomous Okrug
+    name_constitution: None
+    name_fns: None
+    name_fias: None
+    name_rst_data: Корякский автономный округ
+    name_emiss: Корякский автономный округ
+    name_datawrapper: None
+    name_datawrapper_square: None
+    name_datawrapper_short: КОР
+    name_tableau: None
+    alternative_names: []
+    okato: '30100000'
+    oktmo: '30800000'
+    fns_code: None
+    iso_code: None
+    level: регион
+    parent_id: 300
+    parent_name: Камчатский край
+    status: historical
   primorsky:
     id: 50
     name_rus: Приморский край
@@ -1910,6 +2154,7 @@ dict:
     level: регион
     parent_id: 9
     parent_name: Дальневосточный федеральный округ
+    status: active
   khabarovsk:
     id: 80
     name_rus: Хабаровский край
@@ -1931,6 +2176,7 @@ dict:
     level: регион
     parent_id: 9
     parent_name: Дальневосточный федеральный округ
+    status: active
   amur:
     id: 100
     name_rus: Амурская область
@@ -1952,6 +2198,7 @@ dict:
     level: регион
     parent_id: 9
     parent_name: Дальневосточный федеральный округ
+    status: active
   magadan:
     id: 440
     name_rus: Магаданская область
@@ -1973,6 +2220,7 @@ dict:
     level: регион
     parent_id: 9
     parent_name: Дальневосточный федеральный округ
+    status: active
   sakhalin:
     id: 640
     name_rus: Сахалинская область
@@ -1994,6 +2242,7 @@ dict:
     level: регион
     parent_id: 9
     parent_name: Дальневосточный федеральный округ
+    status: active
   jewish:
     id: 990
     name_rus: Еврейская автономная область
@@ -2015,6 +2264,7 @@ dict:
     level: регион
     parent_id: 9
     parent_name: Дальневосточный федеральный округ
+    status: active
   chukotka:
     id: 770
     name_rus: Чукотский автономный округ
@@ -2036,6 +2286,7 @@ dict:
     level: регион
     parent_id: 9
     parent_name: Дальневосточный федеральный округ
+    status: active
   baikonur:
     id: 550
     name_rus: Иные территории, включая Байконур
@@ -2057,3 +2308,4 @@ dict:
     level: федеральный округ
     parent_id: 1
     parent_name: Российская Федерация
+    status: active

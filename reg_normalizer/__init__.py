@@ -8,5 +8,5 @@ attributes such as OKATO codes, ISO codes, English names, and more.
 
 from .regions_validator import RegionMatcher
 
-__version__ = "1.0.8"
+__version__ = "1.0.9"
 __all__ = ["RegionMatcher"]
