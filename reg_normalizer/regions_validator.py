@@ -138,7 +138,8 @@ class RegionMatcher:
 
         for word in EXTRA_DATA:
             if word in name:
-                name = name.partition(word)[0].strip()
+                parts = name.partition(word)
+                name = (parts[0] + parts[2]).strip()
 
         return name
     
