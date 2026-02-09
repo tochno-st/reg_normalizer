@@ -526,8 +526,8 @@ dict:
     name_datawrapper_short: АРХ
     name_tableau: Arkhangel'sk
     alternative_names: []
-    okato: '11000000'
-    oktmo: '11000000'
+    okato: '11200000'
+    oktmo: '11700000'
     fns_code: '29'
     iso_code: RU-ARK
     level: регион
@@ -570,8 +570,8 @@ dict:
     name_datawrapper_short: АРХ
     name_tableau: None
     alternative_names: []
-    okato: '11200000'
-    oktmo: '11700000'
+    okato: '11000000'
+    oktmo: '11000000'
     fns_code: None
     iso_code: None
     level: регион
@@ -1567,8 +1567,8 @@ dict:
     name_datawrapper_short: ТЮМ
     name_tableau: Tyumen
     alternative_names: []
-    okato: '71000000'
-    oktmo: '71000000'
+    okato: '71200000'
+    oktmo: '71600000'
     fns_code: '72'
     iso_code: RU-TYU
     level: регион
@@ -1638,8 +1638,8 @@ dict:
     name_datawrapper_short: ТЮМ
     name_tableau: None
     alternative_names: []
-    okato: '71200000'
-    oktmo: '71600000'
+    okato: '71000000'
+    oktmo: '71000000'
     fns_code: None
     iso_code: None
     level: регион
