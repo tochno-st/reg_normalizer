@@ -55,4 +55,4 @@ dev = [
 packages = ["reg_normalizer"]
 
 [tool.setuptools.package-data]
-reg_normalizer = ["data/interim/*.yaml"]
+reg_normalizer = ["data/interim/*.yaml", "data/interim/*.csv"]
