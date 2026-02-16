@@ -6,7 +6,7 @@ import re
 from nltk.stem.snowball import SnowballStemmer
 
 from .constants import LATIN_TO_CYRILLIC, DEFAULT_ABBREVIATIONS, EXTRA_DATA
-from . import indicators
+from . import indicators as indicators_module
 
 
 def read_yaml(file_path):
@@ -234,7 +234,7 @@ class RegionMatcher:
                 best_match = etalon_name
 
         if best_score < threshold:
-            print(f"WARNING: Best match score {best_score} is less than threshold {threshold} for {input_name} and {etalon_name}. Check it manually.")
+            print(f"WARNING: Best match score {best_score} is less than threshold {threshold} for {input_name} and {best_match}. Check it manually.")
 
         return best_match, best_score if best_score >= threshold else None
     
@@ -350,7 +350,7 @@ class RegionMatcher:
         Loads from indicators_descriptions.yaml in package data.
         Returns dict[str, str] (e.g. 'pop_total' -> 'Численность населения — всего').
         """
-        return indicators.get_indicator_descriptions()
+        return indicators_module.get_indicator_descriptions()
 
     def attach_indicators(
         self,
@@ -382,7 +382,7 @@ class RegionMatcher:
         Raises:
             ValueError: If neither year_col nor year is provided, or indicators are invalid.
         """
-        return indicators.attach_indicators(
+        return indicators_module.attach_indicators(
             df, indicators, name_col=name_col, year_col=year_col, year=year, how=how
         )
 
