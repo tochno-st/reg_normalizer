@@ -14,7 +14,6 @@ def read_yaml(file_path):
         data = yaml.safe_load(file)
     return data
 
-# Get the directory where this script is located
 script_dir = os.path.dirname(os.path.abspath(__file__))
 yaml_path = os.path.join(script_dir, 'data/interim/regions_etalon_v2.0.yaml')
 etalon_data = read_yaml(yaml_path)
@@ -34,12 +33,6 @@ class RegionMatcher:
         abbreviations (dict): Dictionary mapping common abbreviations to full region names.
         preprocessed_etalon (list): Precomputed list of tuples containing original,
             preprocessed, and stemmed versions of etalon regions for efficient matching.
-
-    Example:
-        >>> matcher = RegionMatcher()
-        >>> match, score = matcher.find_best_match("московск область")
-        >>> print(match)
-        'Московская область'
     """
 
     def __init__(self, etalon_regions=None, abbreviations=None):

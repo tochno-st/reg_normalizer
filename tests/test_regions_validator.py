@@ -88,7 +88,6 @@ def test_find_best_match_below_threshold_returns_none_score():
     matcher = RegionMatcher(etalon_regions=["Московская область"])
     match, score = matcher.find_best_match("XyzUnknownRegion123", threshold=99)
     assert score is None
-    # best_match may still be the only option but score is None
     assert match is not None or score is None
 
 
@@ -181,3 +180,10 @@ def test_read_yaml_returns_dict():
     assert isinstance(data, dict)
     assert "dict" in data
     assert "version" in data or "title" in data
+
+
+# --- edge cases ---
+# TODO:
+# Камчатская (область) — не распознает как край
+# Ханты-Мансийский ФО — не распознает, надо править
+# Объединенные регионы (Москва, Московская область) — проверить
