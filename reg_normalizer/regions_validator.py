@@ -6,6 +6,7 @@ import re
 from nltk.stem.snowball import SnowballStemmer
 
 from .constants import LATIN_TO_CYRILLIC, DEFAULT_ABBREVIATIONS, EXTRA_DATA
+from . import indicators as indicators_module
 
 
 def read_yaml(file_path):
@@ -13,7 +14,6 @@ def read_yaml(file_path):
         data = yaml.safe_load(file)
     return data
 
-# Get the directory where this script is located
 script_dir = os.path.dirname(os.path.abspath(__file__))
 yaml_path = os.path.join(script_dir, 'data/interim/regions_etalon_v2.0.yaml')
 etalon_data = read_yaml(yaml_path)
@@ -33,12 +33,6 @@ class RegionMatcher:
         abbreviations (dict): Dictionary mapping common abbreviations to full region names.
         preprocessed_etalon (list): Precomputed list of tuples containing original,
             preprocessed, and stemmed versions of etalon regions for efficient matching.
-
-    Example:
-        >>> matcher = RegionMatcher()
-        >>> match, score = matcher.find_best_match("московск область")
-        >>> print(match)
-        'Московская область'
     """
 
     def __init__(self, etalon_regions=None, abbreviations=None):
@@ -240,7 +234,7 @@ class RegionMatcher:
                 best_match = etalon_name
 
         if best_score < threshold:
-            print(f"WARNING: Best match score {best_score} is less than threshold {threshold} for {input_name} and {etalon_name}. Check it manually.")
+            print(f"WARNING: Best match score {best_score} is less than threshold {threshold} for {input_name} and {best_match}. Check it manually.")
 
         return best_match, best_score if best_score >= threshold else None
     
@@ -248,7 +242,7 @@ class RegionMatcher:
         """Apply matching to an entire DataFrame column by first processing unique values.
 
         Efficiently matches region names in a DataFrame by processing only unique values
-        and mapping the results back to all rows. Adds two new columns: 'ter' (matched
+        and mapping the results back to all rows. Adds two new columns: 'object_name' (matched
         region name) and 'levenshtein_score' (matching confidence score).
 
         Args:
@@ -259,7 +253,7 @@ class RegionMatcher:
 
         Returns:
             pd.DataFrame: The input DataFrame with two new columns added:
-                - 'ter': The matched etalon region name (or None if no match).
+                - 'object_name': The matched etalon region name (or None if no match).
                 - 'levenshtein_score': The matching score (0-100, or 0 if no match).
 
         Example:
@@ -274,7 +268,7 @@ class RegionMatcher:
             ...     weights={'levenshtein': 0.4, 'token_set': 0.6},
             ...     threshold=70
             ... )
-            >>> print(result[['region_name', 'ter', 'levenshtein_score']])
+            >>> print(result[['region_name', 'object_name', 'levenshtein_score']])
         """
         # Get unique values and create mapping dictionaries
         unique_values = df[column_name].unique()
@@ -287,55 +281,17 @@ class RegionMatcher:
             score_mapping[value] = match_result[1] if match_result[1] is not None else 0
 
         # Apply the mappings to create new columns
-        df['ter'] = df[column_name].map(value_mapping)
+        df['object_name'] = df[column_name].map(value_mapping)
         df['levenshtein_score'] = df[column_name].map(score_mapping)
 
         return df
     
-    def attach_field(self, df: pd.DataFrame, column_name: str, etalon_field: str, **kwargs) -> pd.DataFrame:
-        """Add additional field to the dataframe based on the best match.
-
-        Optimized to process only unique values in the column.
-
-        Args:
-            df: DataFrame to modify
-            column_name: Column containing region names
-            etalon_field: Field name from etalon data to attach (e.g., 'name_eng', 'okato', 'iso_code')
-            **kwargs: Additional arguments passed to find_best_match
-
-        Returns:
-            DataFrame with new column added
-        """
-        # Get unique values to avoid redundant matching
-        unique_values = df[column_name].unique()
-        field_mapping = {}
-
-        # Build mapping for unique values only
-        for value in unique_values:
-            match_result = self.find_best_match(value, **kwargs)
-
-            if not match_result or match_result[1] is None:
-                field_mapping[value] = None
-                continue
-
-            best_match, score = match_result
-            # Find the matching etalon record
-            for record in etalon_data['dict'].values():
-                if record['name_rus'] == best_match:
-                    field_mapping[value] = record.get(etalon_field)
-                    break
-            else:
-                field_mapping[value] = None
-
-        # Apply the mapping to create new column
-        df[etalon_field] = df[column_name].map(field_mapping)
-        return df
-
     def attach_fields(self, df: pd.DataFrame, column_name: str, etalon_fields: list, **kwargs) -> pd.DataFrame:
-        """Add multiple fields from etalon data in a single efficient operation.
+        """Add one or more fields from etalon data in a single efficient operation.
 
-        This is much more efficient than calling attach_field() multiple times,
-        as it performs fuzzy matching only once per unique value.
+        Performs fuzzy matching only once per unique value, then attaches all
+        requested etalon fields. For a single field, pass a one-element list
+        (e.g. ['name_eng']).
 
         Args:
             df: DataFrame to modify
@@ -387,6 +343,48 @@ class RegionMatcher:
             df[field] = df[column_name].map(field_mappings[field])
 
         return df
+
+    def get_indicator_descriptions(self) -> dict:
+        """Return indicator code -> Russian description mapping.
+
+        Loads from indicators_descriptions.yaml in package data.
+        Returns dict[str, str] (e.g. 'pop_total' -> 'Численность населения — всего').
+        """
+        return indicators_module.get_indicator_descriptions()
+
+    def attach_indicators(
+        self,
+        df: pd.DataFrame,
+        indicators,
+        name_col: str = "object_name",
+        year_col: str = None,
+        year: int = None,
+        how: str = "left",
+    ) -> pd.DataFrame:
+        """Attach one or more indicator columns from normalizers by region (and optionally year).
+
+        Three merge scenarios:
+        1. With year in data: set year_col -> merge on (name_col, year_col) with (object_name, year).
+        2. Without year in data: set year -> take values for that year only, merge on name_col with object_name.
+        3. Either way, indicators can be a single code (str) or list of codes.
+
+        Args:
+            df: DataFrame with normalized region names in name_col.
+            indicators: One indicator code (str) or list of codes (e.g. 'pop_total' or ['pop_total', 'ibr']).
+            name_col: Column with normalized region name. Default 'object_name'.
+            year_col: Column with year in df; if set, merge on (name_col, year_col).
+            year: Single year when df has no year column; required if year_col is not set.
+            how: Merge type ('left' or 'outer'). Default 'left'.
+
+        Returns:
+            DataFrame with requested indicator columns added.
+
+        Raises:
+            ValueError: If neither year_col nor year is provided, or indicators are invalid.
+        """
+        return indicators_module.attach_indicators(
+            df, indicators, name_col=name_col, year_col=year_col, year=year, how=how
+        )
 
 if __name__ == '__main__':
     matcher = RegionMatcher()

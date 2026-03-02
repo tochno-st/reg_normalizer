@@ -34,10 +34,98 @@ git clone https://github.com/tochno-st/reg_normalizer.git
 cd reg_normalizer
 ```
 
-2. Установите зависимости:
+2. Создайте виртуальное окружение с помощью `uv`:
+
+```bash
+uv venv
+```
+
+3. Активируйте виртуальное окружение:
+
+**На macOS/Linux:**
+```bash
+source .venv/bin/activate
+```
+
+**На Windows:**
+```bash
+.venv\Scripts\activate
+```
+
+4. Установите зависимости для разработки:
+
+```bash
+uv pip install -e ".[dev]"
+```
+
+Или используйте традиционный подход с `pip`:
 
 ```bash
 pip install -r requirements.txt
+pip install -e ".[dev]"
+```
+
+## Разработка и тестирование
+
+### Запуск тестов
+
+Проект использует `pytest` для тестирования. Все тесты находятся в директории `tests/`.
+
+**Запустить все тесты:**
+```bash
+pytest tests/ -v
+```
+
+**Запустить тесты с подробным выводом:**
+```bash
+pytest tests/ -v -s
+```
+
+**Запустить конкретный тестовый файл:**
+```bash
+pytest tests/test_indicators.py -v
+pytest tests/test_regions_validator.py -v
+```
+
+**Запустить конкретный тест:**
+```bash
+pytest tests/test_indicators.py::test_get_indicator_descriptions -v
+```
+
+**Запустить тесты с покрытием кода:**
+```bash
+pytest tests/ --cov=reg_normalizer --cov-report=html
+```
+
+После выполнения команды отчет о покрытии будет доступен в `htmlcov/index.html`.
+
+### Структура тестов
+
+- `tests/test_indicators.py` — тесты для функций работы с индикаторами (`get_indicator_descriptions`, `attach_indicators`)
+- `tests/test_regions_validator.py` — тесты для `RegionMatcher` и вспомогательных функций (`preprocess_name`, `stem_region_name`, `find_best_match`, `match_dataframe`, `attach_fields`)
+
+### Работа с виртуальным окружением `uv`
+
+Если вы используете `uv` для управления зависимостями:
+
+**Создание нового окружения:**
+```bash
+uv venv
+```
+
+**Установка зависимостей:**
+```bash
+uv pip install -e ".[dev]"
+```
+
+**Обновление зависимостей:**
+```bash
+uv pip install --upgrade -e ".[dev]"
+```
+
+**Деактивация окружения:**
+```bash
+deactivate
 ```
 
 ## Быстрый старт
@@ -95,17 +183,15 @@ result_df = matcher.match_dataframe(
 ### 4. Добавление дополнительных полей
 
 ```python
-# Способ 1: Добавить несколько полей одновременно (эффективно!)
+# Одно поле: передайте список из одного элемента
+result_df = matcher.attach_fields(result_df, 'region_name', ['name_eng'])
+
+# Несколько полей
 result_df = matcher.attach_fields(result_df, 'region_name',
                                   ['name_eng', 'okato', 'iso_code'])
 
-# Способ 2: Добавить одно поле
-result_df = matcher.attach_field(result_df, 'region_name', 'name_eng')
-
 print(result_df.head())
 ```
-
-> **Совет**: Используйте `attach_fields()` для добавления нескольких полей — это намного быстрее, чем вызывать `attach_field()` несколько раз, особенно на больших данных.
 
 ## Кастомизация
 
