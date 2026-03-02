@@ -514,15 +514,15 @@ dict:
     status: active
   arkhangelsk:
     id: 110
-    name_rus: Архангельская область
+    name_rus: Архангельская область (с автономным округом)
     name_eng: Arkhangel'sk
     name_constitution: Архангельская область
     name_fns: Архангельская область
     name_fias: Архангельская область
     name_rst_data: Архангельская область
     name_emiss: Архангельская область
-    name_datawrapper: Архангельская область
-    name_datawrapper_square: Архангельская область
+    name_datawrapper: Архангельская область (с автономным округом)
+    name_datawrapper_square: Архангельская область (с АО)
     name_datawrapper_short: АРХ
     name_tableau: Arkhangel'sk
     alternative_names: []
@@ -558,7 +558,7 @@ dict:
     status: active
   arkhangelsk-withoit-nenets:
     id: 112
-    name_rus: Архангельская область без автономного округа
+    name_rus: Архангельская область (без автономного округа)
     name_eng: Arkhangelskaya without Nenets Autonomous Okrug
     name_constitution: None
     name_fns: Архангельская область без автономного округа
@@ -573,7 +573,7 @@ dict:
     okato: '11000000'
     oktmo: '11000000'
     fns_code: None
-    iso_code: None
+    iso_code: RU-ARK
     level: регион
     parent_id: 110
     parent_name: Архангельская область
@@ -1555,15 +1555,15 @@ dict:
     status: active
   tyumen:
     id: 710
-    name_rus: Тюменская область
+    name_rus: Тюменская область (с автономными округами)
     name_eng: Tyumen
     name_constitution: Тюменская область
     name_fns: Тюменская область
     name_fias: Тюменская область
     name_rst_data: Тюменская область
     name_emiss: Тюменская область
-    name_datawrapper: Тюменская область
-    name_datawrapper_square: Тюменская область
+    name_datawrapper: Тюменская область (с автономными округами)
+    name_datawrapper_square: Тюменская область (с АО)
     name_datawrapper_short: ТЮМ
     name_tableau: Tyumen
     alternative_names: []
@@ -1626,7 +1626,7 @@ dict:
     status: active
   tyumen-without-okrug:
     id: 716
-    name_rus: Тюменская область без автономных округов
+    name_rus: Тюменская область (без автономных округов)
     name_eng: Tyumen without Autonomous Okrugs
     name_constitution: None
     name_fns: Тюменская область без автономных округов
@@ -1641,7 +1641,7 @@ dict:
     okato: '71000000'
     oktmo: '71000000'
     fns_code: None
-    iso_code: None
+    iso_code: RU-TYU
     level: регион
     parent_id: 710
     parent_name: Тюменская область

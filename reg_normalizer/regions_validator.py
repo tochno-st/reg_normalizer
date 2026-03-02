@@ -5,7 +5,10 @@ import pandas as pd
 import re
 from nltk.stem.snowball import SnowballStemmer
 
-from .constants import LATIN_TO_CYRILLIC, DEFAULT_ABBREVIATIONS, EXTRA_DATA
+from .constants import (
+    LATIN_TO_CYRILLIC, DEFAULT_ABBREVIATIONS, EXTRA_DATA,
+    COMPOUND_SEPARATORS, COMPOUND_REGION_RULES, PARENT_REGION_RULES,
+)
 from . import indicators as indicators_module
 
 
@@ -96,7 +99,7 @@ class RegionMatcher:
 
         stemmed = self.stem_region_name(processed)
         return processed, stemmed
-    
+
     @staticmethod
     def preprocess_name(name: str) -> str:
         """Normalize and clean region names for comparison.
@@ -136,7 +139,7 @@ class RegionMatcher:
                 name = (parts[0] + parts[2]).strip()
 
         return name
-    
+
     @staticmethod
     def stem_region_name(name: str) -> str:
         """Stem Russian words using Snowball stemmer.
@@ -162,50 +165,25 @@ class RegionMatcher:
         stemmer = SnowballStemmer('russian')
         words = name.split()
         return ' '.join([stemmer.stem(word) for word in words])
-    
-    def find_best_match(self, input_name,
-                       weights=None,
-                       approach_weights=None,
-                       threshold=70):
-        """Find best match using combined fuzzy matching approaches.
 
-        Uses a combination of Levenshtein distance and token set ratio algorithms,
-        applied to both original and stemmed text. The final score is a weighted
-        combination of these approaches.
+    def _find_best_match_core(self, input_name,
+                              weights=None,
+                              approach_weights=None,
+                              threshold=70):
+        """Core fuzzy matching without compound-input detection.
+
+        This is the pure fuzzy matching logic, used internally to avoid
+        recursion when resolving compound parts.
 
         Args:
-            input_name (str): The region name to match against the etalon list.
-            weights (dict, optional): Weights for different matching algorithms.
-                Keys: 'levenshtein', 'token_set'. Values should sum to 1.0 for
-                best results. Defaults to {'levenshtein': 0.5, 'token_set': 0.5}.
-            approach_weights (dict, optional): Weights for different text processing
-                approaches. Keys: 'original', 'stemmed'. Values should sum to 1.0.
-                Defaults to {'original': 0.5, 'stemmed': 0.5}.
-            threshold (int, optional): Minimum score (0-100) required to accept a match.
-                Scores below this return None. Defaults to 65.
+            input_name (str): The region name to match.
+            weights (dict, optional): Algorithm weights. Defaults to 50/50.
+            approach_weights (dict, optional): Approach weights. Defaults to 50/50.
+            threshold (int, optional): Minimum score. Defaults to 70.
 
         Returns:
-            tuple: A tuple containing:
-                - best_match (str or None): The matched etalon region name, or None
-                  if no match meets the threshold.
-                - best_score (float or None): The matching score (0-100), or None
-                  if below threshold.
-
-        Example:
-            >>> matcher = RegionMatcher()
-            >>> match, score = matcher.find_best_match("свердловск")
-            >>> print(f"{match}: {score:.2f}")
-            'Свердловская область: 85.50'
-            >>>
-            >>> # Custom weights favoring token matching and stemming
-            >>> match, score = matcher.find_best_match(
-            ...     "московск обл",
-            ...     weights={'levenshtein': 0.3, 'token_set': 0.7},
-            ...     approach_weights={'original': 0.2, 'stemmed': 0.8},
-            ...     threshold=70
-            ... )
+            tuple: (best_match, best_score) or (best_match, None) if below threshold.
         """
-        # Set default weights if not provided
         weights = weights or {'levenshtein': 0.5, 'token_set': 0.5}
         approach_weights = approach_weights or {'original': 0.5, 'stemmed': 0.5}
 
@@ -215,7 +193,6 @@ class RegionMatcher:
         best_score = 0
 
         for etalon_name, etalon_preprocessed, etalon_stemmed in self.preprocessed_etalon:
-            # Calculate original approach scores
             lev_original = fuzz.ratio(processed_input, etalon_preprocessed)
             ts_original = fuzz.token_set_ratio(processed_input, etalon_preprocessed)
             original_score = (weights['levenshtein'] * lev_original +
@@ -237,13 +214,172 @@ class RegionMatcher:
             print(f"WARNING: Best match score {best_score} is less than threshold {threshold} for {input_name} and {best_match}. Check it manually.")
 
         return best_match, best_score if best_score >= threshold else None
-    
+
+    def _handle_compound_input(self, input_name, threshold=70):
+        """Detect and handle input strings containing multiple regions.
+
+        If the input contains two or more regions connected by separators
+        (e.g., "и", ",", ";"), checks whether the combination matches a known
+        compound-region exception rule. If it does, returns the canonical form.
+        Otherwise returns (None, None) to indicate an unmatchable compound input.
+
+        Args:
+            input_name (str): Raw region name that may contain multiple regions.
+            threshold (int): Threshold for sub-part matching.
+
+        Returns:
+            tuple or None:
+                - None if the input is not a compound string (caller should
+                  proceed with normal matching).
+                - (str, float) if a compound exception rule matches.
+                - (None, None) if compound but no exception rule applies.
+        """
+        preprocessed = self.preprocess_name(input_name)
+
+        # If the full string matches an abbreviation, it's not compound
+        if preprocessed in self.abbreviations:
+            return None
+
+        # Build combined split pattern from COMPOUND_SEPARATORS
+        split_pattern = '|'.join(COMPOUND_SEPARATORS)
+
+        # Check if any separator is present
+        if not re.search(split_pattern, preprocessed):
+            return None
+
+        parts = [p.strip() for p in re.split(split_pattern, preprocessed) if p.strip()]
+
+        if len(parts) < 2:
+            return None
+
+        # Resolve each part to its canonical etalon name
+        resolved_parts = set()
+        for part in parts:
+            match, score = self._find_best_match_core(part, threshold=threshold)
+            if match is None or score is None:
+                return (None, None)
+            resolved_parts.add(match)
+
+        # If all parts resolved to the same region, not truly compound
+        if len(resolved_parts) == 1:
+            return None
+
+        # Check if the resolved set matches any compound exception rule
+        resolved_frozen = frozenset(resolved_parts)
+        for rule_key, canonical_name in COMPOUND_REGION_RULES.items():
+            if resolved_frozen == rule_key:
+                return (canonical_name, 100.0)
+
+        # Compound input detected but no exception rule — return no match
+        return (None, None)
+
+    def find_best_match(self, input_name,
+                       weights=None,
+                       approach_weights=None,
+                       threshold=70):
+        """Find best match using combined fuzzy matching approaches.
+
+        Uses a combination of Levenshtein distance and token set ratio algorithms,
+        applied to both original and stemmed text. The final score is a weighted
+        combination of these approaches.
+
+        Handles compound inputs (multiple regions in one string joined by "и", ","
+        or ";"). For most compound inputs returns (None, None). For exceptions
+        like Архангельская область + НАО, returns the combined canonical name.
+
+        Args:
+            input_name (str): The region name to match against the etalon list.
+            weights (dict, optional): Weights for different matching algorithms.
+                Keys: 'levenshtein', 'token_set'. Values should sum to 1.0 for
+                best results. Defaults to {'levenshtein': 0.5, 'token_set': 0.5}.
+            approach_weights (dict, optional): Weights for different text processing
+                approaches. Keys: 'original', 'stemmed'. Values should sum to 1.0.
+                Defaults to {'original': 0.5, 'stemmed': 0.5}.
+            threshold (int, optional): Minimum score (0-100) required to accept a match.
+                Scores below this return None. Defaults to 70.
+
+        Returns:
+            tuple: A tuple containing:
+                - best_match (str or None): The matched etalon region name, or None
+                  if no match meets the threshold.
+                - best_score (float or None): The matching score (0-100), or None
+                  if below threshold.
+
+        Example:
+            >>> matcher = RegionMatcher()
+            >>> match, score = matcher.find_best_match("свердловск")
+            >>> print(f"{match}: {score:.2f}")
+            'Свердловская область: 85.50'
+        """
+        # Check for compound input before fuzzy matching
+        compound_result = self._handle_compound_input(input_name, threshold=threshold)
+        if compound_result is not None:
+            return compound_result
+
+        return self._find_best_match_core(
+            input_name, weights=weights,
+            approach_weights=approach_weights, threshold=threshold
+        )
+
+    def _resolve_parent_regions(self, value_mapping, score_mapping=None):
+        """Post-analysis: disambiguate parent regions based on the full set of matched regions.
+
+        If a dataset contains both a parent region (e.g., "Архангельская область (с автономным округом)")
+        and its child autonomous okrug (e.g., "Ненецкий автономный округ"), the parent should be
+        replaced with the "without AO" variant. Always prints INFO/WARNING about the decision.
+
+        Args:
+            value_mapping (dict): Mapping of original names to matched etalon names.
+            score_mapping (dict, optional): Mapping of original names to scores.
+                If provided, scores for replaced regions are set to 100.0.
+
+        Returns:
+            dict: Updated value_mapping (modified in place).
+        """
+        all_matched = set(value_mapping.values()) - {None}
+
+        for rule in PARENT_REGION_RULES:
+            parent = rule['parent']
+            child_regions = rule['child_regions']
+            without_ao = rule['without_ao']
+
+            if parent not in all_matched:
+                continue
+
+            # Check if any child autonomous okrug is also in the dataset
+            children_present = child_regions & all_matched
+
+            if children_present:
+                # Children are present separately → parent should be "without AO"
+                print(
+                    f'WARNING: "{parent}" переопределена на "{without_ao}", '
+                    f'потому что автономные округа ({", ".join(sorted(children_present))}) '
+                    f'обнаружены отдельно в данных.'
+                )
+                for key, val in value_mapping.items():
+                    if val == parent:
+                        value_mapping[key] = without_ao
+                        if score_mapping is not None:
+                            score_mapping[key] = 100.0
+            else:
+                # No children → parent stays as "with AO"
+                print(
+                    f'INFO: "{parent}" оставлена как есть (с автономными округами), '
+                    f'потому что автономные округа отдельно в данных не обнаружены.'
+                )
+
+        return value_mapping
+
     def match_dataframe(self, df: pd.DataFrame, column_name: str, **kwargs):
         """Apply matching to an entire DataFrame column by first processing unique values.
 
         Efficiently matches region names in a DataFrame by processing only unique values
         and mapping the results back to all rows. Adds two new columns: 'object_name' (matched
         region name) and 'levenshtein_score' (matching confidence score).
+
+        After matching, performs post-analysis to disambiguate parent regions
+        (Архангельская/Тюменская) based on whether their autonomous okrugs
+        are present separately in the dataset.
 
         Args:
             df (pd.DataFrame): DataFrame containing region names to match.
@@ -280,18 +416,24 @@ class RegionMatcher:
             value_mapping[value] = match_result[0]
             score_mapping[value] = match_result[1] if match_result[1] is not None else 0
 
+        # Post-analysis: disambiguate parent regions
+        self._resolve_parent_regions(value_mapping, score_mapping)
+
         # Apply the mappings to create new columns
         df['object_name'] = df[column_name].map(value_mapping)
         df['levenshtein_score'] = df[column_name].map(score_mapping)
 
         return df
-    
+
     def attach_fields(self, df: pd.DataFrame, column_name: str, etalon_fields: list, **kwargs) -> pd.DataFrame:
         """Add one or more fields from etalon data in a single efficient operation.
 
         Performs fuzzy matching only once per unique value, then attaches all
         requested etalon fields. For a single field, pass a one-element list
         (e.g. ['name_eng']).
+
+        After matching, performs post-analysis to disambiguate parent regions
+        based on the full set of matched regions.
 
         Args:
             df: DataFrame to modify
@@ -311,15 +453,32 @@ class RegionMatcher:
         # Get unique values to avoid redundant matching
         unique_values = df[column_name].unique()
 
+        # First pass: match all unique values
+        match_results = {}
+        value_mapping = {}
+        for value in unique_values:
+            match_result = self.find_best_match(value, **kwargs)
+            match_results[value] = match_result
+            value_mapping[value] = match_result[0]
+
+        # Post-analysis: disambiguate parent regions
+        self._resolve_parent_regions(value_mapping)
+
+        # Update match_results with resolved values
+        for value in unique_values:
+            old_match = match_results[value][0]
+            new_match = value_mapping[value]
+            if old_match != new_match:
+                match_results[value] = (new_match, 100.0)
+
         # Create a mapping dictionary for each field
         field_mappings = {field: {} for field in etalon_fields}
 
         # Build mappings for unique values only (single pass)
         for value in unique_values:
-            match_result = self.find_best_match(value, **kwargs)
+            match_result = match_results[value]
 
             if not match_result or match_result[1] is None:
-                # No match found - set all fields to None
                 for field in etalon_fields:
                     field_mappings[field][value] = None
                 continue
@@ -329,12 +488,10 @@ class RegionMatcher:
             # Find the matching etalon record
             for record in etalon_data['dict'].values():
                 if record['name_rus'] == best_match:
-                    # Extract all requested fields from this record
                     for field in etalon_fields:
                         field_mappings[field][value] = record.get(field)
                     break
             else:
-                # Match found but not in etalon data (shouldn't happen)
                 for field in etalon_fields:
                     field_mappings[field][value] = None
 
@@ -388,7 +545,7 @@ class RegionMatcher:
 
 if __name__ == '__main__':
     matcher = RegionMatcher()
-    
+
     data = pd.DataFrame({
     'region': [
         'московск Обл',        # Shortened form
@@ -402,12 +559,12 @@ if __name__ == '__main__':
         'ХМао',
         'Юж федеральный округ'
     ]})
-    
+
     result = matcher.match_dataframe(
         data,
         'region',
         weights={'levenshtein': 0.4, 'token_set': 0.6},
         approach_weights={'original': 0.3, 'stemmed': 0.7},
         threshold=70)
-    
+
     print(result)
