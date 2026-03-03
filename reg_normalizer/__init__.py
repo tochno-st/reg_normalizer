@@ -9,5 +9,5 @@ attributes such as OKATO codes, ISO codes, English names, and more.
 from .regions_validator import RegionMatcher
 from .indicators import get_indicator_descriptions
 
-__version__ = "1.0.12"
+__version__ = "1.1.0"
 __all__ = ["RegionMatcher", "get_indicator_descriptions"]
