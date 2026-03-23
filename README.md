@@ -1,6 +1,6 @@
-[License: CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/)
-[PyPI version](https://badge.fury.io/py/reg-normalizer)
-[Python Versions](https://pypi.org/project/reg-normalizer/)
+[![License: CC BY-NC-SA 4.0](https://img.shields.io/badge/License-CC_BY--NC--SA_4.0-lightgrey.svg)](https://creativecommons.org/licenses/by-nc-sa/4.0/)
+[![PyPI version](https://badge.fury.io/py/reg-normalizer.svg)](https://badge.fury.io/py/reg-normalizer)
+[![Python Versions](https://img.shields.io/pypi/pyversions/reg-normalizer.svg)](https://pypi.org/project/reg-normalizer/)
 
 # Region Normalizer
 
