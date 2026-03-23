@@ -8,6 +8,7 @@ from nltk.stem.snowball import SnowballStemmer
 from .constants import (
     LATIN_TO_CYRILLIC, DEFAULT_ABBREVIATIONS, EXTRA_DATA,
     COMPOUND_SEPARATORS, COMPOUND_REGION_RULES, PARENT_REGION_RULES,
+    FOOTNOTE_PATTERN, UNITS_PATTERN, REPUBLIC_PATTERNS,
 )
 from . import indicators as indicators_module
 
@@ -68,6 +69,7 @@ class RegionMatcher:
             (region, self.preprocess_name(region), self.stem_region_name(self.preprocess_name(region)))
             for region in self.etalon
         ]
+        self._match_log: list = []
 
     def _process_input(self, input_name: str) -> tuple:
         """Handle preprocessing and abbreviation replacement.
@@ -132,6 +134,15 @@ class RegionMatcher:
 
         name = re.sub(r'[-–—]+', ' ', name)
         name = re.sub(r'\s+', ' ', name).strip().lower()
+
+        # Expand "Республика" abbreviations: "Респ. X", "X Респ." → "республика X"
+        for pattern, replacement in REPUBLIC_PATTERNS:
+            name = re.sub(pattern, replacement, name).strip()
+
+        # Remove footnote markers: 1);2), 1),2), 2);3) etc.
+        name = re.sub(FOOTNOTE_PATTERN, '', name).strip()
+        # Remove measurement units appended after comma: , млн т, , млрд. руб. etc.
+        name = re.sub(UNITS_PATTERN, '', name).strip()
 
         for word in EXTRA_DATA:
             if word in name:
@@ -209,9 +220,6 @@ class RegionMatcher:
             if total_score > best_score:
                 best_score = total_score
                 best_match = etalon_name
-
-        if best_score < threshold:
-            print(f"WARNING: Best match score {best_score} is less than threshold {threshold} for {input_name} and {best_match}. Check it manually.")
 
         return best_match, best_score if best_score >= threshold else None
 
@@ -326,7 +334,7 @@ class RegionMatcher:
 
         If a dataset contains both a parent region (e.g., "Архангельская область (с автономным округом)")
         and its child autonomous okrug (e.g., "Ненецкий автономный округ"), the parent should be
-        replaced with the "without AO" variant. Always prints INFO/WARNING about the decision.
+        replaced with the "without AO" variant.
 
         Args:
             value_mapping (dict): Mapping of original names to matched etalon names.
@@ -334,9 +342,11 @@ class RegionMatcher:
                 If provided, scores for replaced regions are set to 100.0.
 
         Returns:
-            dict: Updated value_mapping (modified in place).
+            tuple: (value_mapping, log_updates) where log_updates is a dict mapping
+                original input value → (event, note) for entries affected by parent resolution.
         """
         all_matched = set(value_mapping.values()) - {None}
+        log_updates = {}
 
         for rule in PARENT_REGION_RULES:
             parent = rule['parent']
@@ -351,24 +361,26 @@ class RegionMatcher:
 
             if children_present:
                 # Children are present separately → parent should be "without AO"
-                print(
-                    f'WARNING: "{parent}" переопределена на "{without_ao}", '
-                    f'потому что автономные округа ({", ".join(sorted(children_present))}) '
-                    f'обнаружены отдельно в данных.'
-                )
+                children_str = ", ".join(sorted(children_present))
                 for key, val in value_mapping.items():
                     if val == parent:
                         value_mapping[key] = without_ao
                         if score_mapping is not None:
                             score_mapping[key] = 100.0
+                        log_updates[key] = (
+                            'parent_resolved',
+                            f'"{parent}" → "{without_ao}": АО ({children_str}) найдены отдельно в данных',
+                        )
             else:
                 # No children → parent stays as "with AO"
-                print(
-                    f'INFO: "{parent}" оставлена как есть (с автономными округами), '
-                    f'потому что автономные округа отдельно в данных не обнаружены.'
-                )
+                for key, val in value_mapping.items():
+                    if val == parent:
+                        log_updates[key] = (
+                            'parent_kept',
+                            f'"{parent}" оставлена с АО: автономные округа отдельно не найдены',
+                        )
 
-        return value_mapping
+        return value_mapping, log_updates
 
     def match_dataframe(self, df: pd.DataFrame, column_name: str, **kwargs):
         """Apply matching to an entire DataFrame column by first processing unique values.
@@ -406,6 +418,8 @@ class RegionMatcher:
             ... )
             >>> print(result[['region_name', 'object_name', 'levenshtein_score']])
         """
+        self._match_log = []
+
         # Get unique values and create mapping dictionaries
         unique_values = df[column_name].unique()
         value_mapping = {}
@@ -417,7 +431,23 @@ class RegionMatcher:
             score_mapping[value] = match_result[1] if match_result[1] is not None else 0
 
         # Post-analysis: disambiguate parent regions
-        self._resolve_parent_regions(value_mapping, score_mapping)
+        value_mapping, log_updates = self._resolve_parent_regions(value_mapping, score_mapping)
+
+        # Build match log
+        for value in unique_values:
+            if value in log_updates:
+                event, note = log_updates[value]
+            elif score_mapping[value] == 0:
+                event, note = 'low_score', 'нет совпадения выше порога — проверьте вручную'
+            else:
+                event, note = 'match', ''
+            self._match_log.append({
+                'original': value,
+                'normalized': value_mapping[value],
+                'score': score_mapping[value] if score_mapping[value] != 0 else None,
+                'event': event,
+                'note': note,
+            })
 
         # Apply the mappings to create new columns
         df['object_name'] = df[column_name].map(value_mapping)
@@ -450,6 +480,8 @@ class RegionMatcher:
             >>> df = matcher.attach_fields(df, 'region_name',
             ...                            ['name_eng', 'okato', 'iso_code'])
         """
+        self._match_log = []
+
         # Get unique values to avoid redundant matching
         unique_values = df[column_name].unique()
 
@@ -462,7 +494,7 @@ class RegionMatcher:
             value_mapping[value] = match_result[0]
 
         # Post-analysis: disambiguate parent regions
-        self._resolve_parent_regions(value_mapping)
+        value_mapping, log_updates = self._resolve_parent_regions(value_mapping)
 
         # Update match_results with resolved values
         for value in unique_values:
@@ -470,6 +502,23 @@ class RegionMatcher:
             new_match = value_mapping[value]
             if old_match != new_match:
                 match_results[value] = (new_match, 100.0)
+
+        # Build match log
+        for value in unique_values:
+            score = match_results[value][1]
+            if value in log_updates:
+                event, note = log_updates[value]
+            elif score is None:
+                event, note = 'low_score', 'нет совпадения выше порога — проверьте вручную'
+            else:
+                event, note = 'match', ''
+            self._match_log.append({
+                'original': value,
+                'normalized': value_mapping[value],
+                'score': score,
+                'event': event,
+                'note': note,
+            })
 
         # Create a mapping dictionary for each field
         field_mappings = {field: {} for field in etalon_fields}
@@ -500,6 +549,43 @@ class RegionMatcher:
             df[field] = df[column_name].map(field_mappings[field])
 
         return df
+
+    def get_match(self) -> pd.DataFrame:
+        """Return a DataFrame with all transformations from the last matching run.
+
+        Each row corresponds to one unique input value. Results are sorted by
+        complexity: most complex / problematic cases first.
+
+        Event types (sort order):
+        - parent_resolved: parent region was reassigned based on children found in data
+          (e.g. "Архангельская область (с АО)" → "Архангельская область (без АО)")
+        - low_score:       no match found above threshold — needs manual review
+        - parent_kept:     parent region kept as-is because no child AOs found separately
+        - match:           normal successful match
+
+        Columns:
+            original   — исходное название из данных
+            normalized — итоговое нормализованное название (None для low_score)
+            score      — балл совпадения (None для low_score)
+            event      — тип события (см. выше)
+            note       — дополнительное пояснение
+
+        Returns:
+            pd.DataFrame, empty if no matching run has been performed yet.
+
+        Example:
+            >>> matcher = RegionMatcher()
+            >>> matcher.match_dataframe(df, 'region')
+            >>> matcher.get_match()
+        """
+        if not self._match_log:
+            return pd.DataFrame(columns=['original', 'normalized', 'score', 'event', 'note'])
+
+        event_order = {'parent_resolved': 0, 'low_score': 1, 'parent_kept': 2, 'match': 3}
+        result = pd.DataFrame(self._match_log)
+        result['_order'] = result['event'].map(event_order)
+        result = result.sort_values('_order').drop(columns='_order').reset_index(drop=True)
+        return result
 
     def get_indicator_descriptions(self) -> dict:
         """Return indicator code -> Russian description mapping.

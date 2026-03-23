@@ -67,12 +67,33 @@ EXTRA_DATA = ['в границах', 'после', 'без учета новых
               '(по 2009 год)', '(с 2010 года)', '(с 29.07.2016)',
               '(с 03.11.2018)', 'в т.ч.', 'в том числе', 'в т.ч. ']
 
+# Inline regex substitutions for "Республика" abbreviations.
+# Applied after lowercase. Order matters: prefix forms before suffix forms.
+REPUBLIC_PATTERNS = [
+    # Suffix first (before prefix, to avoid prefix pattern consuming the abbreviation early):
+    # "X Республ.", "X Респ." → "республика X"
+    (r'^(.+?)\s+республ?\.\s*$', r'республика \1'),
+    (r'^(.+?)\s+респ\.\s*$', r'республика \1'),
+    # Prefix: "Республ. X", "Респ. X" → "республика X"
+    (r'\bреспубл?\.\s*', 'республика '),
+    (r'\bресп\.\s*', 'республика '),
+]
+
+# Regex pattern for footnote markers appended to region names: 1);2), 1),2), 2);3) etc.
+# (?<!\d) ensures we don't match digits within longer numbers (e.g. 23 inside 2023).
+FOOTNOTE_PATTERN = r'\s*((?<!\d)\d{1,2}\)[;,]?\s*)+'
+
+# Regex pattern for measurement units after a comma: , млн т, , млрд. руб., , млн га etc.
+# Matches from the comma onwards when followed by млн/млрд/тыс.
+UNITS_PATTERN = r',\s*(млн|млрд|тыс).*'
+
 # Разделители для обнаружения составных строк с несколькими регионами.
 # Расширяемый список — можно добавлять новые паттерны.
+
 COMPOUND_SEPARATORS = [
     r'\s+и\s+',       # "и" как союз между регионами
-    r',\s*',           # запятая
-    r'\s*;\s*',        # точка с запятой
+    r',\s*',          # запятая как разделитель регионов
+    r'\s*;\s*',       # точка с запятой как разделитель регионов
 ]
 
 # Правила для составных регионов: frozenset нормализованных имён → каноническое имя.

@@ -47,6 +47,68 @@ def test_preprocess_name_multiple_extra_data():
     assert "тюменская область" in out
 
 
+def test_preprocess_name_footnotes_no_space():
+    """Footnote markers directly after name should be removed."""
+    assert RegionMatcher.preprocess_name('Московская область1);2)') == 'московская область'
+    assert RegionMatcher.preprocess_name('Московская область2);3)') == 'московская область'
+    assert RegionMatcher.preprocess_name('Московская область3);4)') == 'московская область'
+
+
+def test_preprocess_name_footnotes_with_space():
+    """Footnote markers with leading space should be removed."""
+    assert RegionMatcher.preprocess_name('Московская область 1);2)') == 'московская область'
+    assert RegionMatcher.preprocess_name('Южный федеральный округ 2);3)') == 'южный федеральный округ'
+
+
+def test_preprocess_name_footnotes_comma_separator():
+    """Footnote markers with comma separator should be removed."""
+    assert RegionMatcher.preprocess_name('Московская область1),2)') == 'московская область'
+
+
+def test_preprocess_name_units_mln():
+    """Units after comma (млн) should be removed."""
+    assert RegionMatcher.preprocess_name('Российская Федерация, млн плотных м3') == 'российская федерация'
+    assert RegionMatcher.preprocess_name('Российская Федерация, млн га') == 'российская федерация'
+    assert RegionMatcher.preprocess_name('Российская Федерация, млн т') == 'российская федерация'
+
+
+def test_preprocess_name_units_mlrd():
+    """Units after comma (млрд) should be removed."""
+    assert RegionMatcher.preprocess_name('Российская Федерация, млрд. руб.') == 'российская федерация'
+    assert RegionMatcher.preprocess_name('Российская Федерация, млрд руб.') == 'российская федерация'
+
+
+def test_preprocess_name_units_with_latin_chars():
+    """Units removal should work even after Latin→Cyrillic conversion."""
+    # Latin 'p' in Федерация → Cyrillic 'р' after conversion
+    assert RegionMatcher.preprocess_name('Российская Федеpация, млрд руб.') == 'российская федерация'
+
+
+def test_preprocess_name_resp_prefix():
+    """'Респ. X' prefix should become 'республика X'."""
+    assert RegionMatcher.preprocess_name('Респ. Татарстан') == 'республика татарстан'
+    assert RegionMatcher.preprocess_name('Респ. Адыгея') == 'республика адыгея'
+    assert RegionMatcher.preprocess_name('Респ. Бурятия') == 'республика бурятия'
+
+
+def test_preprocess_name_respubl_prefix():
+    """'Республ. X' prefix should become 'республика X'."""
+    assert RegionMatcher.preprocess_name('Республ. Дагестан') == 'республика дагестан'
+    assert RegionMatcher.preprocess_name('Республ. Карелия') == 'республика карелия'
+
+
+def test_preprocess_name_resp_suffix():
+    """'X Респ.' suffix should become 'республика X'."""
+    assert RegionMatcher.preprocess_name('Татарстан Респ.') == 'республика татарстан'
+    assert RegionMatcher.preprocess_name('Адыгея Респ.') == 'республика адыгея'
+    assert RegionMatcher.preprocess_name('Башкортостан Респ.') == 'республика башкортостан'
+
+
+def test_preprocess_name_respubl_suffix():
+    """'X Республ.' suffix should become 'республика X'."""
+    assert RegionMatcher.preprocess_name('Дагестан Республ.') == 'республика дагестан'
+
+
 # --- stem_region_name (static) ---
 
 
@@ -259,6 +321,30 @@ class TestAbbreviations:
         match, score = matcher.find_best_match("НАО", threshold=50)
         assert match == "Ненецкий автономный округ"
         assert score is not None
+
+    def test_resp_prefix_matches(self, matcher):
+        """'Респ. X' should match the corresponding republic."""
+        match, score = matcher.find_best_match('Респ. Татарстан')
+        assert match == 'Республика Татарстан'
+        assert score is not None
+
+    def test_resp_suffix_matches(self, matcher):
+        """'X Респ.' should match the corresponding republic."""
+        match, score = matcher.find_best_match('Татарстан Респ.')
+        assert match == 'Республика Татарстан'
+        assert score is not None
+
+    def test_resp_various_republics(self, matcher):
+        """Респ. abbreviation should work for multiple republics."""
+        cases = [
+            ('Респ. Адыгея', 'Республика Адыгея'),
+            ('Респ. Бурятия', 'Республика Бурятия'),
+            ('Башкортостан Респ.', 'Республика Башкортостан'),
+        ]
+        for input_name, expected in cases:
+            match, score = matcher.find_best_match(input_name)
+            assert match == expected, f"Expected '{expected}' for '{input_name}', got '{match}'"
+            assert score is not None
 
 
 # --- match_dataframe ---
@@ -547,8 +633,8 @@ class TestResolveParentRegions:
         assert result["object_name"].iloc[1] == "Архангельская область (с автономным округом)"
         assert result["object_name"].iloc[2] == "Московская область"
 
-    def test_resolve_prints_warning_when_children_present(self, matcher, capsys):
-        """Should print WARNING when parent region is redefined."""
+    def test_resolve_logs_parent_resolved_when_children_present(self, matcher):
+        """Should log parent_resolved event when parent region is redefined."""
         df = pd.DataFrame({
             "region": [
                 "Архангельская область",
@@ -556,13 +642,14 @@ class TestResolveParentRegions:
             ]
         })
         matcher.match_dataframe(df, "region", threshold=70)
-        captured = capsys.readouterr()
-        assert "WARNING" in captured.out
-        assert "переопределена" in captured.out
-        assert "потому что" in captured.out
+        log = matcher.get_match()
+        resolved = log[log["event"] == "parent_resolved"]
+        assert len(resolved) == 1
+        assert "переопределена" in resolved.iloc[0]["note"] or "→" in resolved.iloc[0]["note"]
+        assert "Ненецкий" in resolved.iloc[0]["note"]
 
-    def test_resolve_prints_info_when_no_children(self, matcher, capsys):
-        """Should print INFO when parent region stays as-is."""
+    def test_resolve_logs_parent_kept_when_no_children(self, matcher):
+        """Should log parent_kept event when parent region stays as-is."""
         df = pd.DataFrame({
             "region": [
                 "Архангельская область",
@@ -570,12 +657,13 @@ class TestResolveParentRegions:
             ]
         })
         matcher.match_dataframe(df, "region", threshold=70)
-        captured = capsys.readouterr()
-        assert "INFO" in captured.out
-        assert "потому что" in captured.out
+        log = matcher.get_match()
+        kept = log[log["event"] == "parent_kept"]
+        assert len(kept) == 1
+        assert "оставлена" in kept.iloc[0]["note"]
 
-    def test_no_message_when_no_parent_regions(self, matcher, capsys):
-        """No INFO/WARNING when no Архангельская/Тюменская in data."""
+    def test_no_parent_events_when_no_parent_regions(self, matcher):
+        """No parent_resolved/parent_kept events when no Архангельская/Тюменская in data."""
         df = pd.DataFrame({
             "region": [
                 "Москва",
@@ -583,9 +671,9 @@ class TestResolveParentRegions:
             ]
         })
         matcher.match_dataframe(df, "region", threshold=70)
-        captured = capsys.readouterr()
-        assert "WARNING" not in captured.out
-        assert "INFO" not in captured.out
+        log = matcher.get_match()
+        assert "parent_resolved" not in log["event"].values
+        assert "parent_kept" not in log["event"].values
 
     def test_both_parents_resolved_independently(self, matcher):
         """Архангельская and Тюменская should be resolved independently."""

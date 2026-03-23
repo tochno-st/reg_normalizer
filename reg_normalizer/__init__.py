@@ -1,13 +1,23 @@
 """
-Region Normalizer - Tool for normalizing and standardizing Russian region names.
+Region Normalizer — инструмент для нормализации и стандартизации наименований российских регионов.
 
-This package helps recognize regions even with typos, Latin characters, or various spelling variations.
-It matches different forms of region names against an etalon reference and allows extracting additional
-attributes such as OKATO codes, ISO codes, English names, and more.
+Основные возможности:
+- Нечеткое сопоставление с эталонным справочником: устойчиво к опечаткам, сокращениям,
+  аббревиатурам (спб, хмао, респ.), смешению латиницы и кириллицы, сноскам и единицам измерения.
+- Обработка составных строк с несколькими регионами (через «и»).
+- Автоматическое разрешение вариантов Архангельской и Тюменской областей (с АО / без АО)
+  на основе анализа всего датасета.
+- Пакетная обработка DataFrame с журналом преобразований (get_match()).
+- Присоединение дополнительных полей из справочника (ОКАТО, ISO, английское название и др.).
+- Присоединение нормализующих переменных (численность населения, ИБР и др.) по региону и году.
+
+Основные классы и функции:
+- RegionMatcher — главный класс для нормализации регионов.
+- get_indicator_descriptions — коды и описания доступных показателей.
 """
 
 from .regions_validator import RegionMatcher
 from .indicators import get_indicator_descriptions
 
-__version__ = "1.1.0"
+__version__ = "1.2.0"
 __all__ = ["RegionMatcher", "get_indicator_descriptions"]
