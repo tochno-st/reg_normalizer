@@ -3,8 +3,8 @@ requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "reg-normalizer"
-version = "1.2.0"
+name = "reg_normalizer"
+version = "1.3.0"
 description = "Tool for normalizing and standardizing Russian region names"
 readme = "README.md"
 authors = [

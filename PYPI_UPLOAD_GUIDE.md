@@ -1,4 +1,4 @@
-# Guide to Upload reg-normalizer to PyPI
+# Guide to Upload reg_normalizer to PyPI
 
 Your package is ready to be published! Here's what I've done and what you need to do next:
 
@@ -43,7 +43,7 @@ authors = [
 
 1. Go to https://pypi.org/manage/account/token/
 2. Click "Add API token"
-3. Name: "reg-normalizer-upload"
+3. Name: "reg_normalizer-upload"
 4. Scope: "Entire account" (or specific to this project after first upload)
 5. **Save the token** - it starts with `pypi-`
 
@@ -75,7 +75,7 @@ Test your package on TestPyPI before the real PyPI:
 /usr/bin/python3 -m twine upload --repository testpypi dist/*
 
 # Test installation
-pip install --index-url https://test.pypi.org/simple/ reg-normalizer
+pip install --index-url https://test.pypi.org/simple/ reg_normalizer
 
 # If it works, upload to real PyPI:
 /usr/bin/python3 -m twine upload dist/*
@@ -87,7 +87,7 @@ After uploading, test your package:
 
 ```bash
 # Install from PyPI
-pip install reg-normalizer
+pip install reg_normalizer
 
 # Test it works
 python3 -c "from reg_normalizer import RegionMatcher; print('Success!')"
@@ -101,7 +101,7 @@ After publishing, update your README.md installation instructions:
 ## Installation
 
 ```bash
-pip install reg-normalizer
+pip install reg_normalizer
 ```
 
 ## Quick Start
@@ -117,7 +117,7 @@ print(f"Match: {match}, Score: {score:.2f}")
 
 ## Important Notes:
 
-1. **Package Name**: `reg-normalizer` (with hyphen) is the PyPI name
+1. **Package Name**: `reg_normalizer` (with underscore) is both the PyPI name and the Python import name
 2. **Import Name**: `reg_normalizer` (with underscore) is the Python import name
 3. **Version**: Currently set to 1.0.0 in pyproject.toml
 4. **License**: CC BY-NC-SA 4.0 (non-commercial use)
