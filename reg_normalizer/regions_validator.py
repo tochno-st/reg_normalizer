@@ -281,6 +281,16 @@ class RegionMatcher:
         # Compound input detected but no exception rule — return no match
         return (None, None)
 
+    def _match_single(self, input_name, weights=None, approach_weights=None, threshold=70):
+        """Internal matching without logging. Used by match_dataframe and attach_fields."""
+        compound_result = self._handle_compound_input(input_name, threshold=threshold)
+        if compound_result is not None:
+            return compound_result
+        return self._find_best_match_core(
+            input_name, weights=weights,
+            approach_weights=approach_weights, threshold=threshold
+        )
+
     def find_best_match(self, input_name,
                        weights=None,
                        approach_weights=None,
@@ -294,6 +304,8 @@ class RegionMatcher:
         Handles compound inputs (multiple regions in one string joined by "и", ","
         or ";"). For most compound inputs returns (None, None). For exceptions
         like Архангельская область + НАО, returns the combined canonical name.
+
+        Each call appends an entry to the internal match log, accessible via get_match().
 
         Args:
             input_name (str): The region name to match against the etalon list.
@@ -319,15 +331,22 @@ class RegionMatcher:
             >>> print(f"{match}: {score:.2f}")
             'Свердловская область: 85.50'
         """
-        # Check for compound input before fuzzy matching
-        compound_result = self._handle_compound_input(input_name, threshold=threshold)
-        if compound_result is not None:
-            return compound_result
-
-        return self._find_best_match_core(
+        match, score = self._match_single(
             input_name, weights=weights,
             approach_weights=approach_weights, threshold=threshold
         )
+        if score is None:
+            event, note = 'low_score', 'нет совпадения выше порога — проверьте вручную'
+        else:
+            event, note = 'match', ''
+        self._match_log.append({
+            'original': input_name,
+            'normalized': match,
+            'score': score,
+            'event': event,
+            'note': note,
+        })
+        return match, score
 
     def _resolve_parent_regions(self, value_mapping, score_mapping=None):
         """Post-analysis: disambiguate parent regions based on the full set of matched regions.
@@ -426,7 +445,7 @@ class RegionMatcher:
         score_mapping = {}
 
         for value in unique_values:
-            match_result = self.find_best_match(value, **kwargs)
+            match_result = self._match_single(value, **kwargs)
             value_mapping[value] = match_result[0]
             score_mapping[value] = match_result[1] if match_result[1] is not None else 0
 
@@ -489,7 +508,7 @@ class RegionMatcher:
         match_results = {}
         value_mapping = {}
         for value in unique_values:
-            match_result = self.find_best_match(value, **kwargs)
+            match_result = self._match_single(value, **kwargs)
             match_results[value] = match_result
             value_mapping[value] = match_result[0]
 
