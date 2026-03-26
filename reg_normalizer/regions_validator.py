@@ -603,7 +603,12 @@ class RegionMatcher:
         event_order = {'parent_resolved': 0, 'low_score': 1, 'parent_kept': 2, 'match': 3}
         result = pd.DataFrame(self._match_log)
         result['_order'] = result['event'].map(event_order)
-        result = result.sort_values('_order').drop(columns='_order').reset_index(drop=True)
+        result = (
+            result
+            .sort_values(['_order', 'score'], ascending=[True, True], na_position='first')
+            .drop(columns='_order')
+            .reset_index(drop=True)
+        )
         return result
 
     def get_indicator_descriptions(self) -> dict:

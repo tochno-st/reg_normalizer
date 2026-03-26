@@ -19,5 +19,5 @@ Region Normalizer — инструмент для нормализации и с
 from .regions_validator import RegionMatcher
 from .indicators import get_indicator_descriptions
 
-__version__ = "1.4.0"
+__version__ = "1.5.0"
 __all__ = ["RegionMatcher", "get_indicator_descriptions"]
