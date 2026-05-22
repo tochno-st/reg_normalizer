@@ -348,6 +348,24 @@ class RegionMatcher:
         })
         return match, score
 
+    def _validate_custom_replacements(self, custom_replacements: dict) -> None:
+        """Raise ValueError if any replacement target is not in the etalon list.
+
+        Args:
+            custom_replacements: dict mapping original values to etalon names.
+
+        Raises:
+            ValueError: If one or more target values are absent from self.etalon.
+        """
+        invalid = {v for v in custom_replacements.values() if v not in self.etalon}
+        if invalid:
+            quoted = ', '.join(f'"{v}"' for v in sorted(invalid))
+            raise ValueError(
+                f"custom_replacements содержит значения, которых нет в эталоне: {quoted}. "
+                "Используйте точные названия из справочника: "
+                "https://github.com/tochno-st/reg_normalizer/blob/main/data/interim/regions_etalon_v2.0.yaml"
+            )
+
     def _resolve_parent_regions(self, value_mapping, score_mapping=None):
         """Post-analysis: disambiguate parent regions based on the full set of matched regions.
 
@@ -401,7 +419,8 @@ class RegionMatcher:
 
         return value_mapping, log_updates
 
-    def match_dataframe(self, df: pd.DataFrame, column_name: str, **kwargs):
+    def match_dataframe(self, df: pd.DataFrame, column_name: str,
+                        custom_replacements: dict = None, **kwargs):
         """Apply matching to an entire DataFrame column by first processing unique values.
 
         Efficiently matches region names in a DataFrame by processing only unique values
@@ -412,9 +431,18 @@ class RegionMatcher:
         (Архангельская/Тюменская) based on whether their autonomous okrugs
         are present separately in the dataset.
 
+        custom_replacements are applied last and override both fuzzy matching and
+        post-analysis. Keys are original values as they appear in the column; values
+        are exact etalon names to use.
+
         Args:
             df (pd.DataFrame): DataFrame containing region names to match.
             column_name (str): Name of the column containing region names.
+            custom_replacements (dict, optional): Explicit overrides mapping original
+                values to etalon names, e.g.
+                {'Тюменская обл': 'Тюменская область (без автономных округов)'}.
+                Applied after fuzzy matching and parent-region resolution.
+                Keys not found in the column are silently ignored.
             **kwargs: Additional keyword arguments passed to find_best_match(),
                 such as 'weights', 'approach_weights', and 'threshold'.
 
@@ -437,6 +465,9 @@ class RegionMatcher:
             ... )
             >>> print(result[['region_name', 'object_name', 'levenshtein_score']])
         """
+        if custom_replacements:
+            self._validate_custom_replacements(custom_replacements)
+
         self._match_log = []
 
         # Get unique values and create mapping dictionaries
@@ -451,6 +482,14 @@ class RegionMatcher:
 
         # Post-analysis: disambiguate parent regions
         value_mapping, log_updates = self._resolve_parent_regions(value_mapping, score_mapping)
+
+        # Apply explicit overrides last — they take priority over everything
+        if custom_replacements:
+            for orig, target in custom_replacements.items():
+                if orig in value_mapping:
+                    value_mapping[orig] = target
+                    score_mapping[orig] = 100.0
+                    log_updates[orig] = ('custom_replace', f'явная замена → "{target}"')
 
         # Build match log
         for value in unique_values:
@@ -474,7 +513,8 @@ class RegionMatcher:
 
         return df
 
-    def attach_fields(self, df: pd.DataFrame, column_name: str, etalon_fields: list, **kwargs) -> pd.DataFrame:
+    def attach_fields(self, df: pd.DataFrame, column_name: str, etalon_fields: list,
+                      custom_replacements: dict = None, **kwargs) -> pd.DataFrame:
         """Add one or more fields from etalon data in a single efficient operation.
 
         Performs fuzzy matching only once per unique value, then attaches all
@@ -484,11 +524,20 @@ class RegionMatcher:
         After matching, performs post-analysis to disambiguate parent regions
         based on the full set of matched regions.
 
+        custom_replacements are applied last and override both fuzzy matching and
+        post-analysis. Keys are original values as they appear in the column; values
+        are exact etalon names to use.
+
         Args:
             df: DataFrame to modify
             column_name: Column containing region names
             etalon_fields: List of field names from etalon data to attach
                           (e.g., ['name_eng', 'okato', 'iso_code'])
+            custom_replacements (dict, optional): Explicit overrides mapping original
+                values to etalon names, e.g.
+                {'Тюменская обл': 'Тюменская область (без автономных округов)'}.
+                Applied after fuzzy matching and parent-region resolution.
+                Keys not found in the column are silently ignored.
             **kwargs: Additional arguments passed to find_best_match
 
         Returns:
@@ -499,6 +548,9 @@ class RegionMatcher:
             >>> df = matcher.attach_fields(df, 'region_name',
             ...                            ['name_eng', 'okato', 'iso_code'])
         """
+        if custom_replacements:
+            self._validate_custom_replacements(custom_replacements)
+
         self._match_log = []
 
         # Get unique values to avoid redundant matching
@@ -521,6 +573,14 @@ class RegionMatcher:
             new_match = value_mapping[value]
             if old_match != new_match:
                 match_results[value] = (new_match, 100.0)
+
+        # Apply explicit overrides last — they take priority over everything
+        if custom_replacements:
+            for orig, target in custom_replacements.items():
+                if orig in value_mapping:
+                    value_mapping[orig] = target
+                    match_results[orig] = (target, 100.0)
+                    log_updates[orig] = ('custom_replace', f'явная замена → "{target}"')
 
         # Build match log
         for value in unique_values:
@@ -600,7 +660,7 @@ class RegionMatcher:
         if not self._match_log:
             return pd.DataFrame(columns=['original', 'normalized', 'score', 'event', 'note'])
 
-        event_order = {'parent_resolved': 0, 'low_score': 1, 'parent_kept': 2, 'match': 3}
+        event_order = {'custom_replace': 0, 'parent_resolved': 1, 'low_score': 2, 'parent_kept': 3, 'match': 4}
         result = pd.DataFrame(self._match_log)
         result['_order'] = result['event'].map(event_order)
         result = (

@@ -788,6 +788,166 @@ class TestIntegration:
         assert result["name_eng"].notna().all()
 
 
+# --- custom_replacements ---
+
+
+class TestCustomReplacements:
+    """Tests for custom_replacements parameter in match_dataframe and attach_fields."""
+
+    @pytest.fixture
+    def matcher(self):
+        return RegionMatcher()
+
+    def test_override_fuzzy_match_result(self, matcher):
+        """custom_replacements overrides the fuzzy-matched result."""
+        df = pd.DataFrame({"region": ["Тюменская обл", "Москва"]})
+        result = matcher.match_dataframe(
+            df, "region",
+            custom_replacements={"Тюменская обл": "Тюменская область (без автономных округов)"},
+            threshold=70,
+        )
+        assert result["object_name"].iloc[0] == "Тюменская область (без автономных округов)"
+        assert result["object_name"].iloc[1] == "Москва"
+
+    def test_override_parent_resolution(self, matcher):
+        """custom_replacements wins over automatic parent-region resolution."""
+        df = pd.DataFrame({
+            "region": ["Тюменская область", "Ханты-Мансийский автономный округ"]
+        })
+        # Without override: Тюменская → без АО (ХМАО found in data)
+        # With override: force с АО
+        result = matcher.match_dataframe(
+            df, "region",
+            custom_replacements={"Тюменская область": "Тюменская область (с автономными округами)"},
+            threshold=70,
+        )
+        assert result["object_name"].iloc[0] == "Тюменская область (с автономными округами)"
+
+    def test_override_sets_score_100(self, matcher):
+        """custom_replacements sets levenshtein_score to 100.0."""
+        df = pd.DataFrame({"region": ["Тюменская обл"]})
+        result = matcher.match_dataframe(
+            df, "region",
+            custom_replacements={"Тюменская обл": "Тюменская область (без автономных округов)"},
+            threshold=70,
+        )
+        assert result["levenshtein_score"].iloc[0] == 100.0
+
+    def test_override_logged_as_custom_replace(self, matcher):
+        """custom_replacements produces a 'custom_replace' event in get_match()."""
+        df = pd.DataFrame({"region": ["Архангельская обл"]})
+        matcher.match_dataframe(
+            df, "region",
+            custom_replacements={"Архангельская обл": "Архангельская область (без автономного округа)"},
+            threshold=70,
+        )
+        log = matcher.get_match()
+        custom = log[log["event"] == "custom_replace"]
+        assert len(custom) == 1
+        assert custom.iloc[0]["normalized"] == "Архангельская область (без автономного округа)"
+        assert "явная замена" in custom.iloc[0]["note"]
+
+    def test_unknown_key_silently_ignored(self, matcher):
+        """Keys in custom_replacements absent from the column are silently ignored."""
+        df = pd.DataFrame({"region": ["Москва"]})
+        result = matcher.match_dataframe(
+            df, "region",
+            custom_replacements={"НесуществующийРегион": "Тюменская область (без автономных округов)"},
+            threshold=70,
+        )
+        assert result["object_name"].iloc[0] == "Москва"
+
+    def test_custom_replace_appears_first_in_get_match(self, matcher):
+        """custom_replace events sort before parent_resolved in get_match()."""
+        df = pd.DataFrame({
+            "region": [
+                "Тюменская область",
+                "Архангельская область",
+                "Ненецкий автономный округ",
+            ]
+        })
+        matcher.match_dataframe(
+            df, "region",
+            custom_replacements={"Тюменская область": "Тюменская область (с автономными округами)"},
+            threshold=70,
+        )
+        log = matcher.get_match()
+        events = log["event"].tolist()
+        if "parent_resolved" in events:
+            assert events.index("custom_replace") < events.index("parent_resolved")
+
+    def test_attach_fields_with_custom_replacements(self, matcher):
+        """custom_replacements works in attach_fields."""
+        df = pd.DataFrame({
+            "region": ["Архангельская область", "Ненецкий автономный округ"]
+        })
+        # Without override: Архангельская → без АО (НАО found in data)
+        # With override: force с АО
+        out = matcher.attach_fields(
+            df, "region", ["name_eng"],
+            custom_replacements={"Архангельская область": "Архангельская область (с автономным округом)"},
+            threshold=70,
+        )
+        assert out["name_eng"].iloc[0] == "Arkhangel'sk"
+
+    def test_invalid_target_raises_value_error(self, matcher):
+        """ValueError is raised if a replacement target is not in the etalon."""
+        df = pd.DataFrame({"region": ["Тюменская область"]})
+        with pytest.raises(ValueError, match="эталоне"):
+            matcher.match_dataframe(
+                df, "region",
+                custom_replacements={"Тюменская область": "НесуществующийЭталон"},
+            )
+
+    def test_invalid_target_raises_value_error_attach_fields(self, matcher):
+        """ValueError is raised in attach_fields if target is not in the etalon."""
+        df = pd.DataFrame({"region": ["Тюменская область"]})
+        with pytest.raises(ValueError, match="эталоне"):
+            matcher.attach_fields(
+                df, "region", ["name_eng"],
+                custom_replacements={"Тюменская область": "НесуществующийЭталон"},
+            )
+
+    def test_error_message_contains_invalid_value(self, matcher):
+        """ValueError message should include the offending value."""
+        df = pd.DataFrame({"region": ["Москва"]})
+        with pytest.raises(ValueError, match="ПридуманноеНазвание"):
+            matcher.match_dataframe(
+                df, "region",
+                custom_replacements={"Москва": "ПридуманноеНазвание"},
+            )
+
+    def test_error_message_contains_url(self, matcher):
+        """ValueError message should include a link to the etalon reference."""
+        df = pd.DataFrame({"region": ["Москва"]})
+        with pytest.raises(ValueError, match="regions_etalon"):
+            matcher.match_dataframe(
+                df, "region",
+                custom_replacements={"Москва": "НеверноеНазвание"},
+            )
+
+    def test_multiple_overrides(self, matcher):
+        """Multiple entries in custom_replacements all applied correctly."""
+        df = pd.DataFrame({
+            "region": [
+                "Архангельская обл",
+                "Тюменская обл",
+                "Москва",
+            ]
+        })
+        result = matcher.match_dataframe(
+            df, "region",
+            custom_replacements={
+                "Архангельская обл": "Архангельская область (без автономного округа)",
+                "Тюменская обл": "Тюменская область (без автономных округов)",
+            },
+            threshold=70,
+        )
+        assert result["object_name"].iloc[0] == "Архангельская область (без автономного округа)"
+        assert result["object_name"].iloc[1] == "Тюменская область (без автономных округов)"
+        assert result["object_name"].iloc[2] == "Москва"
+
+
 # --- edge cases ---
 # TODO:
 # Ханты-Мансийский ФО — не распознает, надо править
